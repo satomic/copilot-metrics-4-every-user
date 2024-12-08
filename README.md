@@ -8,7 +8,12 @@ This project is a proxy tool to capture and log HTTP requests and responses, spe
 - Logs request and response details to files
 - Supports basic authentication
 
+
+![architecture](files/architecture.png)
+
+
 ## How to Run
+
 1. Prepare an intermediary server, [install mitmproxy](https://docs.mitmproxy.org/stable/overview-installation/). If you use pip to install mitmproxy on Windows, you need to add the exe path to the environment variable.
 2. run command in console
 ```
@@ -19,8 +24,17 @@ mitmdump --listen-host 0.0.0.0 --listen-port 8080 --set block_global=false -s pr
 5. now you can use the Copilot to generate code, and the request and response will be saved in the `logs` folder. the `completions` folder will save the completions of the Copilot. the `telemetry` folder will save the telemetry of the Copilot.
 
 ## log samples
-`completions` log `2024-12-08T13-05-57.639893_4ce93ec3b2_127.0.0.1_satomic_vscode-1.95.3.json`
-```
+
+
+![log_samples](files/log_samples.png)
+
+
+
+### `completions` log 
+
+`2024-12-08T13-05-57.639893_4ce93ec3b2_127.0.0.1_satomic_vscode-1.95.3.json`
+
+```json
 {
     "proxy-authorization": "satomic",
     "timestamp": "2024-12-08T13:18:23.331449",
@@ -67,8 +81,13 @@ mitmdump --listen-host 0.0.0.0 --listen-port 8080 --set block_global=false -s pr
 }
 ```
 
-`telemetry` log `2024-12-08T13-05-59.677800_-_127.0.0.1_satomic_-.json`
-```
+### `telemetry` log 
+
+
+`2024-12-08T13-05-59.677800_-_127.0.0.1_satomic_-.json`
+
+
+```json
 {
     "proxy-authorization": "satomic",
     "timestamp": "2024-12-08T13:28:23.121297",
