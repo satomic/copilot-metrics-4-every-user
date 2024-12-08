@@ -2,6 +2,20 @@
 
 This project is a proxy tool to capture and log HTTP requests and responses, specifically designed to work with GitHub Copilot. Thanks Daniel Wang & [Lichao Zhao](https://github.com/lichaozhao/copilot-usage/blob/master/sample.py).
 
+
+## WARNNING: BEFORE YOU TRY THIS TOOL, PLEASE READ THE FOLLOWING WARNNING CAREFULLY
+- these are general guidelines for copilot block:
+    1. **Do not change any GitHub Copilot http headers on network**
+    2. Do not share GitHub accounts and GitHub Copilot access
+        - GitHub personal account can not be shared, GitHub can block those shared accounts.
+        - GitHub Copilot access can not be shared between multiple users.
+    3. Maintain a single GitHub Copilot access network outbound so one user do not access GitHub Copilot from different locations at the same time
+    4. do not use a program to generate copilot token, the token need to be requested from official GitHub Copilot IDE extension
+- GitHub does not recommend customer on solution that is not part of GitHub product, in the case of internet proxy officially GitHub support will not support issues on proxy or advise which proxy to use.
+
+
+---
+
 ## Features
 
 - Captures HTTP requests and responses
