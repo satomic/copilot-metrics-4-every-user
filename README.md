@@ -17,10 +17,9 @@ This project is a proxy tool to capture and log HTTP requests and responses, spe
 ---
 
 ## Features
-
-- Captures HTTP requests and responses
-- Logs request and response details to files
-- Supports basic authentication
+- **Basic purpose**. Proxy traffic for a network-isolated development environment.
+- **Prompts Recording**. Captures HTTP requests and responses and logs the details to files, **this will let you know exactly what the code snippets (prompts) uploaded by Copilot are**.
+- **User Insight**. Supports basic authentication, this allows you to get the data of the user dimension, more deeper than team dimension. (this will change http header, not recommanded)
 
 
 ![architecture](files/architecture.png)
