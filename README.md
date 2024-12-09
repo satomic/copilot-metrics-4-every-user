@@ -3,7 +3,7 @@
 This project is a proxy tool to capture and log HTTP requests and responses, specifically designed to work with GitHub Copilot. Thanks Daniel Wang & [Lichao Zhao](https://github.com/lichaozhao/copilot-usage/blob/master/sample.py).
 
 
-## WARNNING: BEFORE YOU TRY THIS TOOL, PLEASE READ THE FOLLOWING WARNNING CAREFULLY
+## BEFORE YOU TRY THIS TOOL, PLEASE READ THE FOLLOWING WARNNING CAREFULLY
 - these are general guidelines for copilot block:
     1. **Do not change any GitHub Copilot http headers on network**
     2. Do not share GitHub accounts and GitHub Copilot access
@@ -17,10 +17,17 @@ This project is a proxy tool to capture and log HTTP requests and responses, spe
 ---
 
 ## Features
-- **Basic purpose**. Proxy traffic for a network-isolated development environment.
-- **Prompts Recording**. Captures HTTP requests and responses and logs the details to files, **this will let you know exactly what the code snippets (prompts) uploaded by Copilot are**.
-- **User Insight**. Supports basic authentication, this allows you to get the data of the user dimension, more deeper than team dimension. (this will change http header, not recommanded)
 
+### Normal Features
+- **Proxy traffic**. For a network-isolated development environment.
+- **Prompts Recording**. Captures HTTP requests and responses and logs the details to files, **this will let you know exactly what the code snippets (prompts) uploaded by Copilot are**.
+
+![architecture_no_header_add](files/architecture_no_header_add.png)
+
+
+
+### Advanced Features
+- **User Insight**. Supports basic authentication, this allows you to get the data of the user dimension, more deeper than team dimension. (this will change http header, not recommanded)
 
 ![architecture](files/architecture.png)
 
@@ -29,11 +36,20 @@ This project is a proxy tool to capture and log HTTP requests and responses, spe
 
 1. Prepare an intermediary server, [install mitmproxy](https://docs.mitmproxy.org/stable/overview-installation/). If you use pip to install mitmproxy on Windows, you need to add the exe path to the environment variable.
 2. run command in console
-```
-mitmdump --listen-host 0.0.0.0 --listen-port 8080 --set block_global=false -s proxy_addons.py
-```
-3. now you can set the proxy in VSCode, and the IP address is `127.0.0.1`, please change it to the actual IP address.
-4. However, at this time, VSCode will prompt for certificate errors, so a [certificate needs to be installed](https://docs.mitmproxy.org/stable/concepts-certificates/). The certificate download requires access to [mitm.it](mitm.it), and the prerequisite for normal access is that mitmproxy is functioning normally. Therefore, before enabling the proxy, only requests that go through the proxy will return normal web pages.
+    ```bash
+    mitmdump --listen-host 0.0.0.0 --listen-port 8080 --set block_global=false -s proxy_addons.py
+    ```
+3. now you can set the proxy in your IDE (VSCode as example here), and the IP address is `127.0.0.1`, please change it to your actual IP address.
+    - for normal features, set the proxy like this: `http://127.0.0.1:8080`
+        ![proxy](files/proxy.png)
+    - for advanced features, set the proxy like this: `http://your_username@127.0.0.1:8080`, and add the `Proxy-Authorization` header with the value `your_username` (the username is `satomic` in the sample code).
+        ![proxy_add_header](files/proxy_add_header.png)
+        in `settings.json`
+        ```json
+            "http.proxyAuthorization": "satomic",
+            "http.proxy": "http://127.0.0.1:8080"
+        ```
+4. However, at this time, IDE will prompt certificate errors, so a [certificate needs to be installed](https://docs.mitmproxy.org/stable/concepts-certificates/). The certificate download requires access to [mitm.it](mitm.it), and the prerequisite for normal access is that mitmproxy is functioning normally. Therefore, before enabling the proxy, only requests that go through the proxy will return normal web pages.
 5. now you can use the Copilot to generate code, and the request and response will be saved in the `logs` folder. the `completions` folder will save the completions of the Copilot. the `telemetry` folder will save the telemetry of the Copilot.
 
 ## log samples
