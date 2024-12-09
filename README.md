@@ -1,6 +1,6 @@
 # Copilot Proxy Insight
 
-This project is a proxy tool to capture and log HTTP requests and responses, specifically designed to work with GitHub Copilot. Thanks Daniel Wang & [Lichao Zhao](https://github.com/lichaozhao/copilot-usage/blob/master/sample.py).
+This project is a proxy tool to capture and log HTTP requests and responses, specifically designed to work with GitHub Copilot. Thanks Daniel Wang & [Lichao Zhao](https://github.com/lichaozhao/copilot-usage/blob/master/sample.py) & Qifeng Hou.
 
 
 ## BEFORE YOU TRY THIS TOOL, PLEASE READ THE FOLLOWING WARNNING CAREFULLY
