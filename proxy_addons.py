@@ -13,7 +13,41 @@ import os
 
 class RequestType:
     completions = 'completions'
-    telemetry = 'telemetry'
+    # telemetry = 'telemetry' # do not save telemetry data by default
+
+
+class ContentHandler:
+
+    @staticmethod
+    def is_convertible_to_dict(string):
+        try:
+            eval(string)
+            return True
+        except Exception as e:
+            # print(f"Error: {traceback.format_exc(e)}")
+            return False
+
+    @staticmethod
+    def to_dicts(content):
+        content = content.replace('false', 'False').replace('true', 'True').replace('null', 'None')
+
+        # for response content
+        if content.startswith("data: "):
+            contents = content.split("\n\n")
+            ret = []
+            for data in contents:
+                data = data.split("data: ")[-1].replace("\\", "").replace(" ", "")
+                data = eval(data) if ContentHandler.is_convertible_to_dict(data) else data
+                if data != "[DONE]":
+                    ret.append(data)
+        else:
+            # for request content
+            ret = eval(content) if ContentHandler.is_convertible_to_dict(content) else content
+        return ret
+    
+    @staticmethod
+    def pretty(content):
+        print(json.dumps(ContentHandler.to_dicts(content=content), indent=4, ensure_ascii=False))
 
 
 class ProxyReqRspSaveToFile:
@@ -55,10 +89,10 @@ class ProxyReqRspSaveToFile:
 
         # Determine type, discard if not one of the two types
         request_type = None
-        if flow.request.url.find("completions") != -1: 
-            request_type = RequestType.completions
-        if flow.request.url.find('telemetry') != -1:
-            request_type = RequestType.telemetry
+        for req_type in vars(RequestType).values():
+            if isinstance(req_type, str) and req_type in flow.request.url:
+                request_type = req_type
+                break
         if not request_type:
             return
 
@@ -87,12 +121,12 @@ class ProxyReqRspSaveToFile:
                 'url': flow.request.url,
                 'method': flow.request.method,
                 'headers': headers_request,
-                'content': content_request,
+                'content': ContentHandler.to_dicts(content_request),
             },
             'response': {
                 'status_code': flow.response.status_code,
                 'headers': dict(flow.response.headers),
-                'content': content_response,
+                'content': ContentHandler.to_dicts(content_response),
             }
         }
 

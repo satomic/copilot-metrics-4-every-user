@@ -1,6 +1,15 @@
 # Copilot Proxy Insight
-
 This project is a proxy tool to capture and log HTTP requests and responses, specifically designed to work with GitHub Copilot. Thanks Daniel Wang & [Lichao Zhao](https://github.com/lichaozhao/copilot-usage/blob/master/sample.py) & Qifeng Hou.
+
+## Update Note
+2024-12-08
+- Add the feature of recording completions and telemetry of Copilot.
+
+2024-12-25
+- By default, telemetry logs are not saved, you can enable it by remove the annotation symbol from line 16 in `proxy_addons.py`.
+- Added parsing of the content fields of request and response in completion
+
+
 
 
 ## BEFORE YOU TRY THIS TOOL, PLEASE READ THE FOLLOWING WARNNING CAREFULLY
