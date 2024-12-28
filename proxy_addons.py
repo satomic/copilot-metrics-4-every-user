@@ -11,8 +11,8 @@ import base64
 import json
 import os
 
-class RequestType:
-    completions = 'completions'
+# class RequestType:
+#     completions = 'completions'
     # telemetry = 'telemetry' # do not save telemetry data by default
 
 
@@ -89,15 +89,16 @@ class ProxyReqRspSaveToFile:
 
         # Determine type, discard if not one of the two types
         request_type = None
-        for req_type in vars(RequestType).values():
-            if isinstance(req_type, str) and req_type in flow.request.url:
-                request_type = req_type
-                break
-        if not request_type:
+        if "copilot-codex/completions" in flow.request.url:
+            request_type = "completions"
+        elif "chat/completions" in flow.request.url:
+            request_type = "chat"
+        else:
             return
 
         client_connect_address = flow.client_conn.address[0]
         proxy_auth_info = self.proxy_authorizations.get(client_connect_address)
+        username = proxy_auth_info.split(":", 1)[0] if proxy_auth_info and ":" in proxy_auth_info else (proxy_auth_info if proxy_auth_info else "anonymous")
 
         # Add milliseconds to the timestamp
         timeconsumed = round((flow.response.timestamp_end - flow.request.timestamp_start) * 1000, 2)
@@ -109,7 +110,6 @@ class ProxyReqRspSaveToFile:
         content_response = flow.response.content.decode('utf-8').replace('\"', '"')
 
         headers_request = dict(flow.request.headers)
-        # if request_type == RequestType.completions:
         editor_version = headers_request.get('editor-version', '-').replace('/', '-')
         vscode_machineid = headers_request.get('vscode-machineid', '-')[0:10]
 
@@ -131,10 +131,10 @@ class ProxyReqRspSaveToFile:
         }
 
         # Create directory if it doesn't exist
-        directory_path = os.path.join(self.log_file_path, request_type)
+        directory_path = os.path.join(self.log_file_path, username, request_type)
         os.makedirs(directory_path, exist_ok=True)
 
-        log_file_name = f'{directory_path}/{timestamp}_{vscode_machineid}_{client_connect_address}_{proxy_auth_info}_{editor_version}.json'.replace(':', '-')
+        log_file_name = f'{directory_path}/{timestamp}_{vscode_machineid}_{client_connect_address}_{editor_version}.json'.replace(':', '-')
         
         try:
             with open(log_file_name, "w", encoding='utf8') as log_file:

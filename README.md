@@ -9,8 +9,9 @@ This project is a proxy tool to capture and log HTTP requests and responses, spe
 - By default, telemetry logs are not saved, you can enable it by remove the annotation symbol from line 16 in `proxy_addons.py`.
 - Added parsing of the content fields of request and response in completion
 
-
-
+2024-12-26
+- New: Read proxy authentication information (proxy_auth_info). If it contains ":", use the left part as the username directory, otherwise it is the username directly; and save the log to the corresponding subdirectory according to the URL containing "copilot-codex/completions" or "chat/completions", otherwise skip the record.
+- New: The log file name no longer contains proxy_auth_info.
 
 ## BEFORE YOU TRY THIS TOOL, PLEASE READ THE FOLLOWING WARNNING CAREFULLY
 - these are general guidelines for copilot block:
