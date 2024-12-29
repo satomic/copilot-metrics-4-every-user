@@ -1,7 +1,3 @@
-# based on Daniel Wang's full feature script. I just simplified it. 
-# the original script also contains whitelist of requests and basic authentication.
-
-# base on https://github.com/lichaozhao/copilot-usage/blob/master/sample.py
 # mitmdump --listen-host 0.0.0.0 --listen-port 8080 --set block_global=false -s proxy_addons.py
 
 import asyncio
@@ -11,10 +7,14 @@ import base64
 import json
 import os
 
-# class RequestType:
-#     completions = 'completions'
-    # telemetry = 'telemetry' # do not save telemetry data by default
 
+class RequestTypeKeywords:
+    completions = "copilot-codex/completions"
+    chat = "chat/completions"
+
+class RequestType:
+    completions = "completions"
+    chat = "chat"
 
 class ContentHandler:
 
@@ -97,12 +97,63 @@ class ProxyReqRspSaveToFile:
 
         # Determine type, discard if not one of the two types
         request_type = None
-        if "copilot-codex/completions" in flow.request.url:
-            request_type = "completions"
-        elif "chat/completions" in flow.request.url:
-            request_type = "chat"
+        if RequestTypeKeywords.completions in flow.request.url:
+            request_type = RequestType.completions
+        elif RequestTypeKeywords.chat in flow.request.url:
+            request_type = RequestType.chat
         else:
             return
+
+        headers_request = dict(flow.request.headers)
+        headers_response = dict(flow.response.headers)
+        content_request = flow.request.content.decode('utf-8').replace('\"', '"')
+        content_request_dict = ContentHandler.to_dicts(content_request)
+        content_response = flow.response.content.decode('utf-8').replace('\"', '"')
+        content_response_list = ContentHandler.to_dicts(content_response)
+
+        editor_version = headers_request.get('editor-version', '-').replace('/', '-')
+
+        # VSCode Conditional judgment
+        if 'vscode' in editor_version.lower():
+            # Determine whether it is a normal completion
+            if request_type == RequestType.completions:
+                # ⚠️If the completion response does not contain any text, it will be invalid.
+                has_text_in_contents_response = any([content.get('choices', [{}])[0].get('text') if isinstance(content, dict) else False for content in content_response_list])
+                if not has_text_in_contents_response:
+                    ctx.log.info(f'⚠️Skipping invalid completion response, cuz there is no text in contents_response')
+                    return
+                # ⚠️If the response_content_length field exists, it is not the normal completion behavior. This is based on experience gained from observing multiple jsons, not based on the design document.
+                content_length_response = headers_response.get('content-length')
+                if content_length_response is not None:
+                    ctx.log.info(f'⚠️Skipping invalid completion response, cuz content_length_response is valid: {content_length_response}')
+                    return
+            # Determine whether it is a normal chat
+            else:
+                # ⚠️If the stop field exists, it is not the normal chat behavior. This is based on experience gained from observing multiple jsons, not based on the design document.
+                content_stop_request = content_request_dict.get('stop')
+                if content_stop_request is not None:
+                    ctx.log.info(f'⚠️Skipping invalid chat response, cuz content_stop_request is valid: {content_stop_request}')
+                    return
+
+        # JetBrains Conditional judgment
+        elif 'jetbrains' in editor_version.lower():
+            if request_type == RequestType.completions:
+                has_text_in_contents_response = any([content.get('choices', [{}])[0].get('text') if isinstance(content, dict) else False for content in content_response_list])
+                if not has_text_in_contents_response:
+                    ctx.log.info(f'⚠️Skipping invalid completion response, cuz there is no text in contents_response')
+                    return
+            else:
+                last_role_in_messages = content_request_dict.get('messages', [{}])[-1].get('role')
+                if last_role_in_messages != 'user':
+                    ctx.log.info(f'⚠️Skipping invalid chat response, cuz last_role_in_messages is not type of `user`: {last_role_in_messages}')
+                    return
+                tools_request = content_request_dict.get('tools')
+                if tools_request is not None:
+                    ctx.log.info(f'⚠️Skipping invalid chat response, cuz tools_request is valid: {tools_request}')
+                    return
+        else:
+            ctx.log.info(f"Skipping unknown editor: {editor_version}")
+
 
         client_connect_address = flow.client_conn.address[0]
         proxy_auth_info = self.proxy_authorizations.get(client_connect_address)
@@ -114,14 +165,8 @@ class ProxyReqRspSaveToFile:
  
         # Concatenate string content
         timestamp = datetime.utcnow().isoformat()
-        content_request = flow.request.content.decode('utf-8').replace('\"', '"')
-        content_response = flow.response.content.decode('utf-8').replace('\"', '"')
-
-        headers_request = dict(flow.request.headers)
-        editor_version = headers_request.get('editor-version', '-').replace('/', '-')
         vscode_machineid = headers_request.get('vscode-machineid', '-')[0:10]
-        request_content_dict = ContentHandler.to_dicts(content_request)
-        language = request_content_dict.get('extra', {}).get('language', 'unknown')
+        language = content_request_dict.get('extra', {}).get('language', 'unknown')
 
         log_entry = {
             'proxy-authorization': proxy_auth_info,
@@ -131,12 +176,12 @@ class ProxyReqRspSaveToFile:
                 'url': flow.request.url,
                 'method': flow.request.method,
                 'headers': headers_request,
-                'content': request_content_dict,
+                'content': content_request_dict,
             },
             'response': {
                 'status_code': flow.response.status_code,
                 'headers': dict(flow.response.headers),
-                'content': ContentHandler.to_dicts(content_response),
+                'content': content_response_list,
             }
         }
 

@@ -1,5 +1,5 @@
 # Copilot Proxy Insight
-This project is a proxy tool to capture and log HTTP requests and responses, specifically designed to work with GitHub Copilot. Thanks Daniel Wang & [Lichao Zhao](https://github.com/lichaozhao/copilot-usage/blob/master/sample.py) & Qifeng Hou.
+This project is a proxy tool to capture and log HTTP requests and responses, specifically designed to work with GitHub Copilot.
 
 ## Update Note
 2024-12-08
@@ -16,8 +16,11 @@ This project is a proxy tool to capture and log HTTP requests and responses, spe
 2024-12-28
 - Feature: Enhance proxy_addons.py to track usage metrics and save to separate files; refactor logging paths and update metrics handling
 
+2024-12-29
+- Feature: Add filtering for meaningless requests to ensure that only valuable data is calculated
 
-## BEFORE YOU TRY THIS TOOL, PLEASE READ THE FOLLOWING WARNNING CAREFULLY
+
+## Warning
 - these are general guidelines for copilot block:
     1. **Do not change any GitHub Copilot http headers on network**
     2. Do not share GitHub accounts and GitHub Copilot access
