@@ -71,6 +71,18 @@ class RequestType:
     completions = "completions"
     chat = "chat"
 
+
+def get_request_type(flow: http.HTTPFlow):
+    # Determine type, discard if not one of the two types
+    if RequestTypeKeywords.completions in flow.request.url:
+        request_type = RequestType.completions
+    elif RequestTypeKeywords.chat in flow.request.url:
+        request_type = RequestType.chat
+    else:
+        request_type = None
+    return request_type
+
+
 class ContentHandler:
 
     @staticmethod
@@ -98,6 +110,8 @@ class ContentHandler:
         else:
             # for request content
             ret = eval(content) if ContentHandler.is_convertible_to_dict(content) else content
+        if isinstance(ret, str):
+            ctx.log.info(f"❌ Content convert failed: {ret}")
         return ret
     
     @staticmethod
@@ -131,29 +145,30 @@ class ProxyReqRspSaveToFile:
         return "anonymous", ""
 
     def http_connect(self, flow: http.HTTPFlow):
-        # in VSCode http://username@proxy_address:port
-        # in JetBrains proxy_address port username password
-        proxy_auth = flow.request.headers.get("Proxy-Authorization", "")
-
-        if proxy_auth:
-            # Because not every request will have Proxy-Authorization in the header, we need to save it in a dictionary
-            username, password = self.get_username_password(flow)
-            self.usernames[(flow.client_conn.address[0])] = username, password
-            ctx.log.info(f"Obtained Proxy-Authorization, username: {username}")
-            if is_proxy_auth_needed:
-                if username not in user_auth:
-                    ctx.log.warn(f"❌ Invalid username: {username}")
+        request_type = get_request_type(flow)
+        if request_type:
+            # in VSCode http://username@proxy_address:port
+            # in JetBrains proxy_address port username password
+            proxy_auth = flow.request.headers.get("Proxy-Authorization", "")
+            if proxy_auth:
+                # Because not every request will have Proxy-Authorization in the header, we need to save it in a dictionary
+                username, password = self.get_username_password(flow)
+                self.usernames[(flow.client_conn.address[0])] = username, password
+                ctx.log.info(f"Obtained Proxy-Authorization, username: {username}")
+                if is_proxy_auth_needed:
+                    if username not in user_auth:
+                        ctx.log.warn(f"❌ Invalid username: {username}")
+                        flow.response = http.Response.make(407)
+                        return
+                    if user_auth[username] != password:
+                        ctx.log.warn(f"❌ Invalid password {password} for user: {username}")
+                        flow.response = http.Response.make(407)
+                        return     
+            else:
+                if is_proxy_auth_needed:
+                    ctx.log.warn(f"❌ Missing Proxy-Authorization in request header, url: {flow.request.url}")
                     flow.response = http.Response.make(407)
                     return
-                if user_auth[username] != password:
-                    ctx.log.warn(f"❌ Invalid password {password} for user: {username}")
-                    flow.response = http.Response.make(407)
-                    return     
-        else:
-            if is_proxy_auth_needed:
-                ctx.log.warn("❌ Missing Proxy-Authorization in request header")
-                flow.response = http.Response.make(407)
-                return
 
     def response(self, flow: http.HTTPFlow):
         # Save request to local
@@ -168,12 +183,8 @@ class ProxyReqRspSaveToFile:
         self.metrics_file = os.path.join(self.metrics_file_path, f'copilot-usage_{self.current_date}.json')
 
         # Determine type, discard if not one of the two types
-        request_type = None
-        if RequestTypeKeywords.completions in flow.request.url:
-            request_type = RequestType.completions
-        elif RequestTypeKeywords.chat in flow.request.url:
-            request_type = RequestType.chat
-        else:
+        request_type = get_request_type(flow)
+        if not request_type:
             return
 
         headers_request = dict(flow.request.headers)
@@ -196,10 +207,10 @@ class ProxyReqRspSaveToFile:
                         ctx.log.info(f'⚠️ Skipping invalid completion response, cuz there is no text in contents_response')
                         return
                     # If the response_content_length field exists, it is not the normal completion behavior. This is based on experience gained from observing multiple jsons, not based on the design document.
-                    content_length_response = headers_response.get('content-length')
-                    if content_length_response is not None:
-                        ctx.log.info(f'⚠️ Skipping invalid completion response, cuz content_length_response is valid: {content_length_response}')
-                        return
+                    # content_length_response = headers_response.get('content-length')
+                    # if content_length_response is not None:
+                    #     ctx.log.info(f'⚠️ Skipping invalid completion response, cuz content_length_response is valid: {content_length_response}')
+                    #     return
                 # Determine whether it is a normal chat
                 else:
                     # If the stop field exists, it is not the normal chat behavior. This is based on experience gained from observing multiple jsons, not based on the design document.

@@ -90,7 +90,7 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 
 ### Configure `proxy_addons.py`
 
-1. There are some key parameters to configure in `proxy_addons.py`:
+1. There are some key parameters to configure in `proxy_addons.py`, mitmproxy will automatically reload the script once it has been modified.
    ```python
    # Conditional judgment, It is recommended to set it to True, which will perform rule checks on all requests to ensure that the number of chats and completions are not counted multiple times.
    conditional_judgment = True # False True
