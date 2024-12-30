@@ -8,6 +8,7 @@
 | 1.1          | Feature: Read proxy authentication informatio and save the log to the corresponding subdirectory according to the URL containing "copilot-codex/completions" or "chat/completions", otherwise skip the record. | 20241226  |
 | 1.2          | Feature: Enhance `proxy_addons.py` to track usage metrics and save to separate files; refactor logging paths and update metrics handling                                                                                                                                                                                                     | 20241228  |
 | 1.3          | - Feature: Add filtering for meaningless requests to ensure that only valuable data is calculated <br>- Feature: **Add auth**                                                                                                                                                                                                                 | 20241229  |
+| 1.4          | Fixed the verification logic bug of basic authentication; adjusted the proxy server side log format and added emoji🙂 to make the log very clear                                                                                                                                                                                                                 | 20241230  |
 
 ## Table of contents
 - [Copilot Proxy Insight of Every User](#Copilot-Proxy-Insight-of-Every-User)
@@ -145,6 +146,56 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
    - The `usage` folder is a subdirectory with the user name, which records the detailed data of `chat` and `completions` respectively.
 
 # Log samples
+
+## Proxy Server Side Log
+
+```text
+[10:13:13.823] ====================================================================================================
+[10:13:13.824] ✅ http_connect flow.request.url: proxy.enterprise.githubcopilot.com:443
+[10:13:13.824] ✅ Obtained Proxy-Authorization, username: xuefeng
+[10:13:13.881][127.0.0.1:57302] server connect proxy.enterprise.githubcopilot.com:443 (52.175.140.176:443)
+127.0.0.1:57302: POST https://proxy.enterprise.githubcopilot.com/v1/engines/copilot-codex/completions HTTP/2.0
+     << HTTP/2.0 200 OK 5.3k
+[10:13:14.186] ✅🤖🚗 Processing completions response: https://proxy.enterprise.githubcopilot.com/v1/engines/copilot-codex/completions
+[10:13:14.192] 😄 Log saved logs\usage\xuefeng\completions/2024-12-30T02-13-14.189603_4ce93ec3b2_127.0.0.1_JetBrains-PC-243.22562.220.json
+[10:13:14.196] 😆 Metrics saved logs\metrics\copilot-usage_2024-12-30.json
+[10:13:15.363][127.0.0.1:57302] client disconnect
+[10:13:15.364][127.0.0.1:57302] server disconnect proxy.enterprise.githubcopilot.com:443 (52.175.140.176:443)
+[10:13:15.371][127.0.0.1:57306] client connect
+[10:13:30.482] ====================================================================================================
+[10:13:30.482] ✅ http_connect flow.request.url: api.enterprise.githubcopilot.com:443
+[10:13:30.483] ✅ Obtained Proxy-Authorization, username: xuefeng
+[10:13:30.487][127.0.0.1:57319] server connect api.enterprise.githubcopilot.com:443 (140.82.113.22:443)
+[10:13:30.638][127.0.0.1:56773] server disconnect telemetry.enterprise.githubcopilot.com:443 (140.82.113.21:443)
+[10:13:31.139][127.0.0.1:57317] Client TLS handshake failed. The client disconnected during the handshake. If this happens consistently for telemetry.enterprise.githubcopilot.com, this may indicate that the client does not trust the proxy's certificate.
+[10:13:31.143][127.0.0.1:57317] client disconnect
+[10:13:31.146][127.0.0.1:57317] server disconnect telemetry.enterprise.githubcopilot.com:443 (140.82.113.22:443)
+[10:13:31.224][127.0.0.1:57319] Client TLS handshake failed. The client disconnected during the handshake. If this happens consistently for api.enterprise.githubcopilot.com, this may indicate that the client does not trust the proxy's certificate.
+[10:13:31.228][127.0.0.1:57319] client disconnect
+[10:13:31.229][127.0.0.1:57319] server disconnect api.enterprise.githubcopilot.com:443 (140.82.113.22:443)
+127.0.0.1:57306: POST https://telemetry.enterprise.githubcopilot.com/telemetry HTTP/2.0
+     << HTTP/2.0 200 OK 62b
+127.0.0.1:57241: POST https://api.enterprise.githubcopilot.com/chat/completions HTTP/2.0
+     << HTTP/2.0 200 OK 7.6k
+[10:13:32.198] ✅💬👄 Processing chat response: https://api.enterprise.githubcopilot.com/chat/completions
+[10:13:32.205] 😄 Log saved logs\usage\xuefeng\chat/2024-12-30T02-13-32.203524_4ce93ec3b2_127.0.0.1_JetBrains-PC-243.22562.220.json
+[10:13:32.208] 😆 Metrics saved logs\metrics\copilot-usage_2024-12-30.json
+[10:13:32.223][127.0.0.1:57325] client connect
+[10:13:32.225] ====================================================================================================
+[10:13:32.225] ✅ http_connect flow.request.url: api.enterprise.githubcopilot.com:443
+[10:13:32.225] ✅ Obtained Proxy-Authorization, username: xuefeng
+[10:13:32.231][127.0.0.1:57325] server connect api.enterprise.githubcopilot.com:443 (140.82.113.22:443)
+[10:13:32.974][127.0.0.1:57325] Client TLS handshake failed. The client disconnected during the handshake. If this happens consistently for api.enterprise.githubcopilot.com, this may indicate that the client does not trust the proxy's certificate.
+[10:13:32.977][127.0.0.1:57325] client disconnect
+[10:13:32.979][127.0.0.1:57325] server disconnect api.enterprise.githubcopilot.com:443 (140.82.113.22:443)
+127.0.0.1:57241: POST https://api.enterprise.githubcopilot.com/chat/completions HTTP/2.0
+     << HTTP/2.0 200 OK 6.7k
+[10:13:33.671] ✅💬👄 Processing chat response: https://api.enterprise.githubcopilot.com/chat/completions
+[10:13:33.679] ⚠️ Skipping invalid chat response, cuz last_role_in_messages is not type of `user`: system
+[10:13:34.328][127.0.0.1:57327] client connect
+```
+
+## Log Tree
 
 ![](image/image_pODAu2gCUW.png)
 
