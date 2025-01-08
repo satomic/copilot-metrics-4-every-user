@@ -34,6 +34,7 @@ random_seed = 123456
 allowed_usernames = [
     "satomic",
     "xuefeng",
+    "rin",
 ]
 
 
@@ -125,11 +126,30 @@ class ProxyReqRspSaveToFile:
     
     def __init__(self):
         self.loop = asyncio.get_event_loop()
-        self.usernames = {} 
+        self.usernames = {}
+        self.usernames_file_path = os.path.join(log_file_path, "usernames.json")
         self.usage_file_path = os.path.join(log_file_path, "usage")
         self.metrics_file_path = os.path.join(log_file_path, "metrics")
         self.current_date = datetime.utcnow().date()
+        self.load_usernames()
         ctx.log.info("✅ Initialized ProxyReqRspSaveToJson plugin")
+
+    def load_usernames(self):
+        if os.path.exists(self.usernames_file_path):
+            try:
+                with open(self.usernames_file_path, "r", encoding='utf8') as usernames_file:
+                    self.usernames = json.load(usernames_file)
+                ctx.log.info(f"✅ Loaded usernames from {self.usernames_file_path}")
+            except Exception as e:
+                ctx.log.error(f"❌ Unable to load usernames from file: {e}")
+
+    def save_usernames(self):
+        try:
+            with open(self.usernames_file_path, "w", encoding='utf8') as usernames_file:
+                usernames_file.write(json.dumps(self.usernames, indent=4, ensure_ascii=False))
+            ctx.log.info(f"✅ Usernames saved to {self.usernames_file_path}")
+        except Exception as e:
+            ctx.log.error(f"❌ Unable to save usernames to file: {e}")
 
     def requestheaders(self, flow: http.HTTPFlow):
         proxy_auth = flow.request.headers.get("Proxy-Authorization", "")
@@ -165,14 +185,19 @@ class ProxyReqRspSaveToFile:
         # in JetBrains proxy_address port username password
         ctx.log.info(f"====================================================================================================")
         ctx.log.info(f"✅ http_connect flow.request.url: {flow.request.url}")
-        # proxy_auth = flow.request.headers.get("Proxy-Authorization", "")
+        
+        client_connect_address = flow.client_conn.address[0]
         username, password = self.get_username_password(flow)
         if username != "anonymous":
             ctx.log.info(f"✅ Obtained Proxy-Authorization, username: {username}")
+            self.usernames[client_connect_address] = username, password
+            self.save_usernames()
         else:
-            ctx.log.warn(f"⚠️ Anonymous user")
-        self.usernames[(flow.client_conn.address[0])] = username, password
-        
+            username, password = self.usernames.get(client_connect_address, ('anonymous', ''))
+            if username == "anonymous":
+                ctx.log.warn(f"⚠️ Anonymous user")
+            else:
+                ctx.log.info(f"✅ Using saved username: {username}, although Proxy-Authorization is missing")
 
     def response(self, flow: http.HTTPFlow):
         # The Proxy-Authorization cannot be obtained here
