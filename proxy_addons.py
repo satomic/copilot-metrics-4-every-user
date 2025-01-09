@@ -1,3 +1,5 @@
+# repo: https://github.com/satomic/copilot-proxy-insight-of-every-user
+# version: 1.5.0
 # mitmdump --listen-host 0.0.0.0 --listen-port 8080 --set block_global=false -s proxy_addons.py
 
 import asyncio
