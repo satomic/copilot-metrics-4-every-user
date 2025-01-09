@@ -129,7 +129,7 @@ class ProxyReqRspSaveToFile:
     def __init__(self):
         self.loop = asyncio.get_event_loop()
         self.usernames = {}
-        self.usernames_file_path = os.path.join(log_file_path, "usernames.json")
+        self.usernames_file_path = os.path.join(log_file_path, "proxy_auth_cache.json")
         self.usage_file_path = os.path.join(log_file_path, "usage")
         self.metrics_file_path = os.path.join(log_file_path, "metrics")
         self.current_date = datetime.utcnow().date()
