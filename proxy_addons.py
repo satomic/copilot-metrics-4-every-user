@@ -199,7 +199,7 @@ class ProxyReqRspSaveToFile:
             if username == "anonymous":
                 ctx.log.warn(f"⚠️ Anonymous user")
             else:
-                ctx.log.info(f"✅ Using saved username: {username}, although Proxy-Authorization is missing")
+                ctx.log.info(f"💿 Using proxy auth cache: {username}, although Proxy-Authorization is missing")
 
     def response(self, flow: http.HTTPFlow):
         # The Proxy-Authorization cannot be obtained here
