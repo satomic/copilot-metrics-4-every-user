@@ -1,5 +1,9 @@
 # Copilot Proxy Insight of Every User
 
+> ⚠️**Disclaimer**: This project is open sourced to solve problems that are critical to some users, and the functions provided may not be natively provided by GitHub Copilot. Therefore the contents,  opinions and views expressed in this project are solely mine do not necessarly refect the views of my employer, These are my personal notes based on myunderstanding of the code and trial deployments to GitHub Copilot. If anything is wrong with this article, please let me know through the [issues](https://github.com/satomic/copilot-proxy-insight-of-every-user/issues/new). l appreciate your help in correcting my understanding.
+
+> ⚠️**Risk Warning**: This project provides metrics on individual dimensions that Copilot's original metrics do not have, which may cause potential developer stress and mental pressure. Please use it with caution **ONLY for research purposes**, do not use it for performance evaluation or other purposes that may cause harm to developers.
+
 
 | **Version**​ | **Update Notes**​                                                                                                                                                                                                                                                                                                                             | **Date**​ |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
