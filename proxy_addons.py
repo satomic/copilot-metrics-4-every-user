@@ -4,12 +4,19 @@
 
 import asyncio
 from mitmproxy import http, ctx
-from datetime import datetime
+from datetime import datetime, timezone
 import base64
 import json
 import os
 import hashlib
 import random
+import re
+
+
+def convert_timestamp_to_str(timestamp: float) -> str:
+    dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+    formatted_utc_tz = dt.strftime("%Y-%m-%d %H:%M:%S%z")
+    return formatted_utc_tz
 
 
 def generate_password(username: str, seed: int) -> str:
@@ -38,6 +45,24 @@ allowed_usernames = [
     "xuefeng",
     "rin",
 ]
+
+# completion injuection for languages
+completion_injection_switchs = {
+    "python": True,
+}
+
+completion_injection_paras = {
+    "python": {
+        "request_clean_patterns": [
+            r'# @@.*?GHCP.*?@@',
+        ],
+        "response_inject_patterns": [
+            ( r"\):", "):  # @@ func by GHCP {editor_version} at {timestamp}@@"), # only for function now
+            # ( r":\s+\n", ":  # @@by GHCP {editor_version} at {timestamp}@@\n"),
+            # ( r":\n", ":  # @@by GHCP {editor_version} at {timestamp}@@\n"),
+        ]
+    }
+}
 
 
 # Generate passwords for allowed users and save to user_auth.json
@@ -168,6 +193,40 @@ class ProxyReqRspSaveToFile:
             return username, password
         return "anonymous", ""
 
+    def is_request_need_to_inject(self, flow: http.HTTPFlow):
+        # only for completions now
+        if RequestTypeKeywords.completions not in flow.request.url:
+            return False
+        
+        # content_request = flow.request.content.decode('utf-8').replace('\"', '"')
+        # if "prompt" in content_request:
+        #     return True
+
+        return True
+
+    def get_language(self, flow: http.HTTPFlow):
+        if self.is_request_need_to_inject(flow):
+            content_request = flow.request.content.decode('utf-8').replace('\"', '"')
+            content_request_dict = ContentHandler.to_dicts(content_request)
+            language = content_request_dict.get('extra', {}).get('language', 'unknown')
+            return language
+        return "unknown"
+
+    def request(self, flow: http.HTTPFlow):
+        if not flow.request or not flow.request.content:
+            return
+
+        if self.is_request_need_to_inject(flow):
+            language = self.get_language(flow)
+            if language in completion_injection_paras:
+                original_body = flow.request.content.decode("utf-8")
+                request_clean_patterns = completion_injection_paras[language].get("request_clean_patterns", [])
+                for pattern in request_clean_patterns:
+                    modified_body = re.sub(pattern, '', original_body)
+                    flow.request.content = modified_body.encode("utf-8")
+                    flow.request.headers["Content-Length"] = str(len(flow.request.content))
+
+
     def http_connect(self, flow: http.HTTPFlow):
         # The complete API request path cannot be obtained here
         # Headers in http_connect
@@ -204,31 +263,6 @@ class ProxyReqRspSaveToFile:
     def response(self, flow: http.HTTPFlow):
         # The Proxy-Authorization cannot be obtained here
 
-        # Headers in response completions
-        # {
-        #     "azureml-model-deployment": "d040-20241213214617",
-        #     "content-security-policy": "default-src 'none'; sandbox",
-        #     "content-type": "text/event-stream",
-        #     "openai-processing-ms": "45.744",
-        #     "strict-transport-security": "max-age=31536000",
-        #     "x-request-id": "6c388e7e-66df-472a-9055-4ead8e168b97",
-        #     "content-length": "356",
-        #     "date": "Mon, 30 Dec 2024 01:18:57 GMT",
-        #     "x-github-backend": "Kubernetes",
-        #     "x-github-request-id": "80A8:391A24:10E20B:125859:6771F500"
-        # }
-
-        # Headers in response chat
-        # {
-        #     "content-security-policy": "default-src 'none'; sandbox",
-        #     "content-type": "application/json",
-        #     "strict-transport-security": "max-age=31536000",
-        #     "x-request-id": "6b5df6f8-76f9-4964-8324-babeff8da62f",
-        #     "date": "Mon, 30 Dec 2024 01:19:55 GMT",
-        #     "x-github-backend": "Kubernetes",
-        #     "x-github-request-id": "25B7:11694A:1967C6:2B8D5D:6771F539"
-        # }
-
         client_connect_address = flow.client_conn.address[0]
         username, password = self.usernames.get(client_connect_address, ('anonymous', ''))
 
@@ -254,6 +288,40 @@ class ProxyReqRspSaveToFile:
                     ctx.log.error(f"❌ Missing Proxy-Authorization in request header, url: {flow.request.url}")
                     flow.response = http.Response.make(407)
                     return
+
+        # inject in the response
+        if self.is_request_need_to_inject(flow):
+            timestamp = convert_timestamp_to_str(flow.timestamp_created)
+            headers_request = dict(flow.request.headers)
+            editor_version = headers_request.get('editor-version', '-').replace('/', '-')
+            language = self.get_language(flow)
+
+            if completion_injection_switchs.get(language, False):
+                ctx.log.info(f"✅ Injecting completion for language: {language}")
+                
+                modified_flag = False
+                original_content = flow.response.content.decode("utf-8")
+                modified_content = original_content
+                for inject_pattern in completion_injection_paras[language].get("response_inject_patterns", []):
+                    print("inject_pattern", inject_pattern)  
+                    # if inject_pattern[0] in modified_content:
+                    if re.findall(inject_pattern[0], modified_content):
+                        # modified_content = original_content.replace(inject_pattern[0], inject_pattern[1].format(editor_version=editor_version, timestamp=timestamp))
+                        modified_content = re.sub(inject_pattern[0], inject_pattern[1].format(editor_version=editor_version, timestamp=timestamp), modified_content)
+                        modified_flag = True
+                
+                
+                if modified_flag:
+                    flow.response.content = modified_content.encode("utf-8")
+                    ctx.log.info("injected🔥")
+                    
+                    
+                # else:
+                #     print("not🔥++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    
+                # content_response = flow.response.content.decode('utf-8')
+                # print(f"{content_response}")
+
 
         # Save request to local
         asyncio.ensure_future(self.save_to_file(flow))
