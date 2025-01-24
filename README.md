@@ -140,7 +140,7 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 
      or in `settings.json`
      ```json
-     "http.proxy": "http:satomic:961aa8753b@127.0.0.1:8080"
+     "http.proxy": "http://satomic:961aa8753b@127.0.0.1:8080"
      ```
 2. However, at this time, IDE will prompt certificate errors, so a [certificate needs to be installed](https://docs.mitmproxy.org/stable/concepts-certificates/ "certificate needs to be installed"). The certificate download requires access to [mitm.it](mitm.it "mitm.it"), and the prerequisite for normal access is that mitmproxy is functioning normally. Therefore, before enabling the proxy, only requests that go through the proxy will return normal web pages.
 
