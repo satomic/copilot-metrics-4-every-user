@@ -10,6 +10,7 @@ import json
 import os
 import hashlib
 import random
+import traceback
 
 version_date = "20250224"
 
@@ -383,7 +384,7 @@ class ProxyReqRspSaveToFile:
             ctx.log.info(f"😄 Log saved {log_file_name}")
             self.update_and_save_metrics(request_type, username, editor_version, language, action_type)
         except Exception as e:
-            ctx.log.error(f"❌ Unable to save log to file: {e}")
+            ctx.log.error(f"❌ Unable to save log to file: {traceback.format_exc(e)}")
             return
 
     def update_and_save_metrics(self, request_type, username, editor_version, language, action_type):
@@ -428,12 +429,13 @@ class ProxyReqRspSaveToFile:
         else:
             if action_type not in aggregated_metrics[username]["chat"]:
                 aggregated_metrics[username]["chat"][action_type] = {
-                    "total_turns": 0
+                    "chat_turns": 0,
+                    "editor_version": {},
                 }
-            if editor_version not in aggregated_metrics[username]["chat"][action_type]:
-                aggregated_metrics[username]["chat"][action_type][editor_version] = 0
-            aggregated_metrics[username]["chat"][action_type][editor_version] += 1
-            aggregated_metrics[username]["chat"][action_type]["total_turns"] += 1
+            if editor_version not in aggregated_metrics[username]["chat"][action_type]["editor_version"]:
+                aggregated_metrics[username]["chat"][action_type]["editor_version"][editor_version] = 0
+            aggregated_metrics[username]["chat"][action_type]["editor_version"][editor_version] += 1
+            aggregated_metrics[username]["chat"][action_type]["chat_turns"] += 1
             aggregated_metrics[username]["chat_turns"] += 1
             total_chat_turns += 1
 
@@ -444,7 +446,7 @@ class ProxyReqRspSaveToFile:
             "usage": aggregated_metrics
         }
 
-        # Create the metrics file if it does not exist
+        # Create the metrics file if it does not exist.
         os.makedirs(self.metrics_file_path, exist_ok=True)
 
         try:

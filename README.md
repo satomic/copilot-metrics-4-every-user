@@ -217,22 +217,30 @@ Different event types supported for metrics, including `nes`, `agent`, `edits`.
             "chat_turns": 35,
             "chat": {
                 "edits": {
-                    "total_turns": 4,
-                    "vscode-1.97.2": 2,
-                    "vscode-1.98.0-insider": 2
+                    "chat_turns": 4,
+                    "editor_version": {
+                        "vscode-1.97.2": 2,
+                        "vscode-1.98.0-insider": 2
+                    },
                 },
                 "agent": {
-                    "total_turns": 2,
-                    "vscode-1.98.0-insider": 2
+                    "chat_turns": 2,
+                    "editor_version": {
+                        "vscode-1.98.0-insider": 2
+                    }
                 },
-                "unknown": {
-                    "total_turns": 11,
-                    "simulation-tests-editor-1.85": 10,
-                    "vscode-1.98.0-insider": 1
+                "chat": {
+                    "chat_turns": 11,
+                    "editor_version": {
+                        "simulation-tests-editor-1.85": 10,
+                        "vscode-1.98.0-insider": 1
+                    }
                 },
                 "nes": {
-                    "total_turns": 18,
-                    "simulation-tests-editor-1.85": 18
+                    "chat_turns": 18,
+                    "editor_version": {
+                        "simulation-tests-editor-1.85": 18
+                    }
                 }
             },
             "completions_count": 2,
