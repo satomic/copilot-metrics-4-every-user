@@ -332,10 +332,25 @@ class ProxyReqRspSaveToFile:
         # Concatenate string content
         timestamp = datetime.utcnow().isoformat()
         language = content_request_dict.get('extra', {}).get('language', 'unknown')
+        model = content_request_dict.get('model', 'unknown')
+        openai_intent = headers_request.get('openai-intent', 'unknown')
         vscode_machineid = headers_request.get('vscode-machineid', '-')[0:10]
         client_connect_address = flow.client_conn.address[0]
         username, password = self.usernames.get(client_connect_address, ('anonymous', ''))
 
+        # what type of action is this? chat or completions? or NES, Agent, Edit? 
+        action_type = "completions"
+        if request_type == RequestType.chat:
+            if openai_intent == "conversation-agent":
+                action_type = "agent"
+            elif openai_intent == "conversation-edits":
+                action_type = "edits"
+            elif openai_intent == "conversation-panel":
+                action_type = "chat"
+            elif model == "copilot-nes-v":
+                action_type = "nes"
+            else:
+                action_type = "unknown"
 
         log_entry = {
             'proxy-authorization': f'{username}:{password}',
@@ -355,21 +370,21 @@ class ProxyReqRspSaveToFile:
         }
 
         # Create directory if it doesn't exist
-        directory_path = os.path.join(self.usage_file_path, username, request_type)
+        directory_path = os.path.join(self.usage_file_path, username, action_type)
         os.makedirs(directory_path, exist_ok=True)
 
-        log_file_name = f'{directory_path}/{timestamp}_{vscode_machineid}_{client_connect_address}_{editor_version}.json'.replace(':', '-')
+        log_file_name = f'{directory_path}/{timestamp}_{vscode_machineid}_{client_connect_address}_{editor_version}_{action_type}.json'.replace(':', '-')
         
         try:
             with open(log_file_name, "w", encoding='utf8') as log_file:
                 log_file.write(json.dumps(log_entry, indent=4, ensure_ascii=False))
             ctx.log.info(f"😄 Log saved {log_file_name}")
-            self.update_and_save_metrics(request_type, username, editor_version, language)
+            self.update_and_save_metrics(request_type, username, editor_version, language, action_type)
         except Exception as e:
             ctx.log.error(f"❌ Unable to save log to file: {e}")
             return
 
-    def update_and_save_metrics(self, request_type, username, editor_version, language):
+    def update_and_save_metrics(self, request_type, username, editor_version, language, action_type):
         current_date = datetime.utcnow().date()
         if current_date != self.current_date:
             self.current_date = current_date
@@ -395,8 +410,8 @@ class ProxyReqRspSaveToFile:
         if username not in aggregated_metrics:
             aggregated_metrics[username] = {
                 "chat_turns": 0,
-                "completions_count": 0,
                 "chat": {},
+                "completions_count": 0,
                 "completions": {}
             }
 
@@ -409,9 +424,14 @@ class ProxyReqRspSaveToFile:
             aggregated_metrics[username]["completions_count"] += 1
             total_completions_count += 1
         else:
-            if editor_version not in aggregated_metrics[username]["chat"]:
-                aggregated_metrics[username]["chat"][editor_version] = 0
-            aggregated_metrics[username]["chat"][editor_version] += 1
+            if action_type not in aggregated_metrics[username]["chat"]:
+                aggregated_metrics[username]["chat"][action_type] = {
+                    "total_turns": 0
+                }
+            if editor_version not in aggregated_metrics[username]["chat"][action_type]:
+                aggregated_metrics[username]["chat"][action_type][editor_version] = 0
+            aggregated_metrics[username]["chat"][action_type][editor_version] += 1
+            aggregated_metrics[username]["chat"][action_type]["total_turns"] += 1
             aggregated_metrics[username]["chat_turns"] += 1
             total_chat_turns += 1
 
