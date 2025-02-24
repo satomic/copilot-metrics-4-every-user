@@ -14,6 +14,7 @@
 | 1.3          | - Feature: Add filtering for meaningless requests to ensure that only valuable data is calculated <br>- Feature: **Add auth**                                                                                                                                                                                                                 | 20241229  |
 | 1.4          | Fixed the verification logic bug of basic authentication; adjusted the proxy server side log format and added emoji🙂 to make the log very clear                                                                                                                                                                                                                 | 20241230  |
 | 1.5          | Add functionality to load and save usernames from a JSON file, In order to avoid the problem that sometimes requests do not carry Authorization, that cause requests to be dropped                                                                                                                                                                                                                 | 20250108  |
+| 1.6          |    Different event types have been added to logging and metrics, including `nes`, `agent`, `edits`.                                                                                                                                                                                                             | 20250224  |
 
 ## Table of contents
 - [Copilot Proxy Insight of Every User](#Copilot-Proxy-Insight-of-Every-User)
@@ -205,37 +206,54 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 ![](image/image_pODAu2gCUW.png)
 
 ## Metrics log
-
+Different event types supported for metrics, including `nes`, `agent`, `edits`.
 ```json
 {
-    "day": "2024-12-28",
-    "total_chat_turns": 13,
-    "total_completions_count": 19,
+    "day": "2025-02-24",
+    "total_chat_turns": 36,
+    "total_completions_count": 3,
     "usage": {
         "satomic": {
-            "chat_turns": 6,
-            "completions_count": 16,
+            "chat_turns": 35,
             "chat": {
-                "vscode-1.96.2": 6
+                "edits": {
+                    "total_turns": 4,
+                    "vscode-1.97.2": 2,
+                    "vscode-1.98.0-insider": 2
+                },
+                "agent": {
+                    "total_turns": 2,
+                    "vscode-1.98.0-insider": 2
+                },
+                "unknown": {
+                    "total_turns": 11,
+                    "simulation-tests-editor-1.85": 10,
+                    "vscode-1.98.0-insider": 1
+                },
+                "nes": {
+                    "total_turns": 18,
+                    "simulation-tests-editor-1.85": 18
+                }
             },
+            "completions_count": 2,
             "completions": {
-                "vscode-1.96.2": {
-                    "python": 2,
-                    "javascript": 3,
-                    "markdown": 11
+                "vscode-1.97.2": {
+                    "jsonc": 2
                 }
             }
         },
         "xuefeng": {
-            "chat_turns": 7,
-            "completions_count": 3,
+            "chat_turns": 1,
             "chat": {
-                "JetBrains-PC-243.22562.220": 6,
-                "vscode-1.96.2": 1
+                "edits": {
+                    "total_turns": 1,
+                    "vscode-1.97.2": 1
+                }
             },
+            "completions_count": 1,
             "completions": {
-                "JetBrains-PC-243.22562.220": {
-                    "python": 3
+                "vscode-1.97.2": {
+                    "jsonc": 1
                 }
             }
         }
@@ -244,6 +262,28 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 ```
 
 ## Usage Log
+
+Different event types supported for logging, including `nes`, `agent`, `edits`.
+```
+├─logs
+│  ├─metrics
+│  └─usage
+│      ├─anonymous
+│      │  ├─chat
+│      │  └─completions
+│      ├─rin
+│      │  ├─chat
+│      │  └─completions
+│      ├─satomic
+│      │  ├─chat
+│      │  ├─completions
+│      │  ├─edits
+│      │  ├─nes
+│      │  └─unknown
+│      └─xuefeng
+│          ├─chat
+│          └─completions
+```
 
 ### `completions` log&#x20;
 
@@ -342,7 +382,7 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 }
 ```
 
-### `chat` log
+### `chat` log 
 
 ````json
 {

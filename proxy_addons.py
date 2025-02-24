@@ -1,5 +1,5 @@
 # repo: https://github.com/satomic/copilot-proxy-insight-of-every-user
-# version: 1.5.0
+# version: 1.6
 # mitmdump --listen-host 0.0.0.0 --listen-port 8080 --set block_global=false -s proxy_addons.py
 
 import asyncio
@@ -11,6 +11,7 @@ import os
 import hashlib
 import random
 
+version_date = "20250224"
 
 def generate_password(username: str, seed: int) -> str:
     random.seed(seed)
@@ -56,12 +57,13 @@ except Exception as e:
 
 init_info = """
 🔥🔥🔥🔥🔥🔥🔥🔥Init from here🔥🔥🔥🔥🔥🔥🔥🔥
+version_date: %s
 log_file_path: %s
 conditional_judgment: %s
 is_proxy_auth_needed: %s
 random_seed: %s
 allowed_usernames:\n- %s
-""" % (log_file_path, conditional_judgment, is_proxy_auth_needed, random_seed, '\n- '.join(allowed_usernames))
+""" % (version_date, log_file_path, conditional_judgment, is_proxy_auth_needed, random_seed, '\n- '.join(allowed_usernames))
 
 ctx.log.info(init_info)
 
