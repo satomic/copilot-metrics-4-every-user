@@ -349,11 +349,13 @@ class ProxyReqRspSaveToFile:
             elif openai_intent == "conversation-edits":
                 action_type = "edits"
             elif openai_intent == "conversation-panel":
-                action_type = "chat"
+                action_type = "chat-panel"
+            elif openai_intent == "conversation-inline":
+                action_type = "chat-inline"
             elif model == "copilot-nes-v":
                 action_type = "nes"
             else:
-                action_type = "unknown"
+                action_type = "other"
 
         log_entry = {
             'proxy-authorization': f'{username}:{password}',

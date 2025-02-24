@@ -14,7 +14,7 @@
 | 1.3          | - Feature: Add filtering for meaningless requests to ensure that only valuable data is calculated <br>- Feature: **Add auth**                                                                                                                                                                                                                 | 20241229  |
 | 1.4          | Fixed the verification logic bug of basic authentication; adjusted the proxy server side log format and added emoji🙂 to make the log very clear                                                                                                                                                                                                                 | 20241230  |
 | 1.5          | Add functionality to load and save usernames from a JSON file, In order to avoid the problem that sometimes requests do not carry Authorization, that cause requests to be dropped                                                                                                                                                                                                                 | 20250108  |
-| 1.6          |    Different event types have been added to logging and metrics, including `nes`, `agent`, `edits`.                                                                                                                                                                                                             | 20250224  |
+| 1.6          |    Different event types have been added to logging and metrics, including `nes`, `agent`, `edits`, `chat-inline`, `chat-panel`.                                                                                                                                                                                                             | 20250224  |
 
 ## Table of contents
 - [Copilot Proxy Insight of Every User](#Copilot-Proxy-Insight-of-Every-User)
@@ -229,7 +229,7 @@ Different event types supported for metrics, including `nes`, `agent`, `edits`.
                         "vscode-1.98.0-insider": 2
                     }
                 },
-                "chat": {
+                "chat-panel": {
                     "chat_turns": 11,
                     "editor_version": {
                         "simulation-tests-editor-1.85": 10,
@@ -277,19 +277,21 @@ Different event types supported for logging, including `nes`, `agent`, `edits`.
 │  ├─metrics
 │  └─usage
 │      ├─anonymous
-│      │  ├─chat
+│      │  ├─chat-panel
 │      │  └─completions
 │      ├─rin
-│      │  ├─chat
+│      │  ├─chat-panel
 │      │  └─completions
 │      ├─satomic
-│      │  ├─chat
+│      │  ├─chat-inline
+│      │  ├─chat-panel
 │      │  ├─completions
 │      │  ├─edits
 │      │  ├─nes
-│      │  └─unknown
+│      │  └─other
 │      └─xuefeng
-│          ├─chat
+│          ├─chat-inline
+│          ├─chat-panel
 │          └─completions
 ```
 
