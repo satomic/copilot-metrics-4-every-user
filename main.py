@@ -247,18 +247,26 @@ def main():
         logger.error(f"Error decoding JSON from file: {metrics_file_path}")
         return
 
+    es_manager = ElasticsearchManager()
+
     # Initialize DataSplitter and process the data
     data_splitter = DataSplitter(data)
-    total_list = data_splitter.get_total_list()
     completions_list = data_splitter.get_completions_list()
     chat_list = data_splitter.get_chat_list()
     extension_list = data_splitter.get_extension_list()
 
-    # Log the results
-    logger.info(f"Total list: {total_list}")
-    logger.info(f"Completions list: {completions_list}")
-    logger.info(f"Chat list: {chat_list}")
-    logger.info(f"Extension list: {extension_list}")
+    # Write to ES
+    for data in completions_list:
+        es_manager.write_to_es(Indexes.index_completions, data)
+    
+    for data in chat_list:
+        es_manager.write_to_es(Indexes.index_name_breakdown, data)
+
+    for data in extension_list:
+        es_manager.write_to_es(Indexes.index_name_breakdown_chat, data)
+    
+    logger.info(f"Data processing completed successfully.")
+
 
 if __name__ == "__main__":
     while True:
