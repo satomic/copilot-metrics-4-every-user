@@ -1,0 +1,1873 @@
+{
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
+                },
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+            }
+        ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 5,
+    "links": [],
+    "panels": [
+        {
+            "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 19,
+            "links": [
+                {
+                    "targetBlank": true,
+                    "title": "Tutorials & Feedback",
+                    "url": "https://github.com/satomic/copilot-metrics-4-every-user"
+                }
+            ],
+            "options": {
+                "code": {
+                    "language": "plaintext",
+                    "showLineNumbers": false,
+                    "showMiniMap": false
+                },
+                "content": "",
+                "mode": "markdown"
+            },
+            "pluginVersion": "11.4.0",
+            "title": "For 📖tutorials & 💖feedback, please visit the repo \"Copilot Metrics for Every User\", Click👉",
+            "type": "text"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-completions-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 0,
+                "y": 1
+            },
+            "id": 3,
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "username",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-chat-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_completions AND language: $language",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Completions Count  by User",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-completions-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 4,
+                "y": 1
+            },
+            "id": 4,
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "editor",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-chat-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_completions AND language: $language",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Completions Count by Editor",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-completions-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 8,
+                "y": 1
+            },
+            "id": 5,
+            "options": {
+                "displayLabels": [],
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "model",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-completions-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_completions AND language: $language",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Completions Count by Model",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-completions-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 12,
+                "y": 1
+            },
+            "id": 6,
+            "options": {
+                "displayLabels": [],
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "language",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-completions-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_completions AND language: $language",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Completions Count by Language",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-completions-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "orange",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 2,
+                "x": 16,
+                "y": 1
+            },
+            "id": 1,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "sum"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "day",
+                            "id": "2",
+                            "settings": {
+                                "interval": "auto"
+                            },
+                            "type": "date_histogram"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-extension-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_completions AND language: $language",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Total Completions",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-completions-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "orange",
+                        "mode": "fixed"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "fillOpacity": 80,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "lineWidth": 1,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 6,
+                "x": 18,
+                "y": 1
+            },
+            "id": 2,
+            "options": {
+                "barRadius": 0,
+                "barWidth": 0.95,
+                "fullHighlight": false,
+                "groupWidth": 0.7,
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": false
+                },
+                "orientation": "auto",
+                "showValue": "always",
+                "stacking": "normal",
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                },
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 100
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "day",
+                            "id": "2",
+                            "settings": {
+                                "interval": "1d"
+                            },
+                            "type": "date_histogram"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-chat-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_completions AND language: $language",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Completions Count by Day",
+            "type": "barchart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-chat-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 0,
+                "y": 11
+            },
+            "id": 9,
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "username",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-chat-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_chat AND chat_type: $chat_type",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Chat Count  by User",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-chat-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 4,
+                "y": 11
+            },
+            "id": 10,
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "editor",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-chat-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_chat AND chat_type: $chat_type",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Chat Count by Editor",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-chat-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 8,
+                "y": 11
+            },
+            "id": 11,
+            "options": {
+                "displayLabels": [],
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "model",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-chat-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_chat AND chat_type: $chat_type",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Chat Count by Model",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-chat-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 12,
+                "y": 11
+            },
+            "id": 12,
+            "options": {
+                "displayLabels": [],
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "chat_type",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-chat-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_chat AND chat_type: $chat_type",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Chat Count by Type",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-chat-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "blue",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 2,
+                "x": 16,
+                "y": 11
+            },
+            "id": 7,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "sum"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "day",
+                            "id": "2",
+                            "settings": {
+                                "interval": "auto"
+                            },
+                            "type": "date_histogram"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-chat-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_chat AND chat_type: $chat_type",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Total Chat Turns",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-chat-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "blue",
+                        "mode": "fixed"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "fillOpacity": 80,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "lineWidth": 1,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 6,
+                "x": 18,
+                "y": 11
+            },
+            "id": 13,
+            "options": {
+                "barRadius": 0,
+                "barWidth": 0.95,
+                "fullHighlight": false,
+                "groupWidth": 0.7,
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": false
+                },
+                "orientation": "auto",
+                "showValue": "always",
+                "stacking": "normal",
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                },
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 100
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "day",
+                            "id": "2",
+                            "settings": {
+                                "interval": "1d"
+                            },
+                            "type": "date_histogram"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-extension-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_chat AND chat_type: $chat_type",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Chat Count by Day",
+            "type": "barchart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-extension-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 0,
+                "y": 21
+            },
+            "id": 14,
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "username",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-extension-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_extension AND extension: $extension",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Extension Count by User",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-extension-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 4,
+                "y": 21
+            },
+            "id": 15,
+            "options": {
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "editor",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-extension-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_extension AND extension: $extension",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Extension Count by Editor",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-extension-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 8,
+                "y": 21
+            },
+            "id": 16,
+            "options": {
+                "displayLabels": [],
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "model",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-extension-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_extension AND extension: $extension",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Extension Count by Model",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-extension-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": [],
+                    "unit": "none"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 4,
+                "x": 12,
+                "y": 21
+            },
+            "id": 17,
+            "options": {
+                "displayLabels": [],
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "right",
+                    "showLegend": true,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "extension",
+                            "id": "2",
+                            "settings": {
+                                "min_doc_count": "1",
+                                "order": "desc",
+                                "orderBy": "1",
+                                "size": "0"
+                            },
+                            "type": "terms"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-extension-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_extension AND extension: $extension",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Extension Count by Name",
+            "type": "piechart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-extension-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "purple",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 2,
+                "x": 16,
+                "y": 21
+            },
+            "id": 8,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "sum"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "day",
+                            "id": "2",
+                            "settings": {
+                                "interval": "auto"
+                            },
+                            "type": "date_histogram"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-extension-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_extension AND extension: $extension",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Total Extension ",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-extension-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "purple",
+                        "mode": "fixed"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "fillOpacity": 80,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "lineWidth": 1,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 6,
+                "x": 18,
+                "y": 21
+            },
+            "id": 18,
+            "options": {
+                "barRadius": 0,
+                "barWidth": 0.95,
+                "fullHighlight": false,
+                "groupWidth": 0.7,
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": false
+                },
+                "orientation": "auto",
+                "showValue": "always",
+                "stacking": "normal",
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                },
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 100
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "day",
+                            "id": "2",
+                            "settings": {
+                                "interval": "1d"
+                            },
+                            "type": "date_histogram"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-extension-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_extension AND extension: $extension",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Extension Count by Day",
+            "type": "barchart"
+        }
+    ],
+    "preload": false,
+    "schemaVersion": 40,
+    "tags": [],
+    "templating": {
+        "list": [
+            {
+                "current": {
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "datasource": {
+                    "type": "elasticsearch",
+                    "uid": "elasticsearch-chat-uid"
+                },
+                "definition": "{\"find\": \"terms\", \"field\":  \"username\", \"query\": \"username:*\"}",
+                "includeAll": true,
+                "label": "Username",
+                "name": "username",
+                "options": [],
+                "query": "{\"find\": \"terms\", \"field\":  \"username\", \"query\": \"username:*\"}",
+                "refresh": 2,
+                "regex": "",
+                "type": "query"
+            },
+            {
+                "current": {
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "datasource": {
+                    "type": "elasticsearch",
+                    "uid": "elasticsearch-chat-uid"
+                },
+                "definition": "{\"find\": \"terms\", \"field\":  \"editor\", \"query\": \"editor:*\"}",
+                "includeAll": true,
+                "label": "Editor",
+                "name": "editor",
+                "options": [],
+                "query": "{\"find\": \"terms\", \"field\":  \"editor\", \"query\": \"editor:*\"}",
+                "refresh": 2,
+                "regex": "",
+                "type": "query"
+            },
+            {
+                "current": {
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "datasource": {
+                    "type": "elasticsearch",
+                    "uid": "elasticsearch-completions-uid"
+                },
+                "definition": "{\"find\": \"terms\", \"field\":  \"model\", \"query\": \"model:*\"}",
+                "includeAll": true,
+                "label": "Model Completions",
+                "name": "model_completions",
+                "options": [],
+                "query": "{\"find\": \"terms\", \"field\":  \"model\", \"query\": \"model:*\"}",
+                "refresh": 2,
+                "regex": "",
+                "type": "query"
+            },
+            {
+                "current": {
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "datasource": {
+                    "type": "elasticsearch",
+                    "uid": "elasticsearch-chat-uid"
+                },
+                "definition": "{\"find\": \"terms\", \"field\":  \"model\", \"query\": \"model:*\"}",
+                "includeAll": true,
+                "label": "Model Chat",
+                "name": "model_chat",
+                "options": [],
+                "query": "{\"find\": \"terms\", \"field\":  \"model\", \"query\": \"model:*\"}",
+                "refresh": 2,
+                "regex": "",
+                "type": "query"
+            },
+            {
+                "current": {
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "datasource": {
+                    "type": "elasticsearch",
+                    "uid": "elasticsearch-extension-uid"
+                },
+                "definition": "{\"find\": \"terms\", \"field\":  \"model\", \"query\": \"model:*\"}",
+                "includeAll": true,
+                "label": "Model Extension",
+                "name": "model_extension",
+                "options": [],
+                "query": "{\"find\": \"terms\", \"field\":  \"model\", \"query\": \"model:*\"}",
+                "refresh": 2,
+                "regex": "",
+                "type": "query"
+            },
+            {
+                "current": {
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "datasource": {
+                    "type": "elasticsearch",
+                    "uid": "elasticsearch-completions-uid"
+                },
+                "definition": "{\"find\": \"terms\", \"field\":  \"language\", \"query\": \"language:*\"}",
+                "includeAll": true,
+                "label": "Language",
+                "name": "language",
+                "options": [],
+                "query": "{\"find\": \"terms\", \"field\":  \"language\", \"query\": \"language:*\"}",
+                "refresh": 2,
+                "regex": "",
+                "type": "query"
+            },
+            {
+                "current": {
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "datasource": {
+                    "type": "elasticsearch",
+                    "uid": "elasticsearch-chat-uid"
+                },
+                "definition": "{\"find\": \"terms\", \"field\":  \"chat_type\", \"query\": \"chat_type:*\"}",
+                "includeAll": true,
+                "label": "Chat Type",
+                "name": "chat_type",
+                "options": [],
+                "query": "{\"find\": \"terms\", \"field\":  \"chat_type\", \"query\": \"chat_type:*\"}",
+                "refresh": 2,
+                "regex": "",
+                "type": "query"
+            },
+            {
+                "current": {
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "datasource": {
+                    "type": "elasticsearch",
+                    "uid": "elasticsearch-extension-uid"
+                },
+                "definition": "{\"find\": \"terms\", \"field\":  \"extension\", \"query\": \"extension:*\"}",
+                "includeAll": true,
+                "label": "Extension",
+                "name": "extension",
+                "options": [],
+                "query": "{\"find\": \"terms\", \"field\":  \"extension\", \"query\": \"extension:*\"}",
+                "refresh": 2,
+                "regex": "",
+                "type": "query"
+            }
+        ]
+    },
+    "time": {
+        "from": "now-7d",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Metrics for Everyuser",
+    "uid": "cefl3gdj7m3uoa",
+    "version": 20,
+    "weekStart": ""
+}

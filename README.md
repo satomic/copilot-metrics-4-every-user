@@ -1,4 +1,4 @@
-# Copilot Proxy Insight of Every User
+# Copilot Metrics for Every User
 
 > ⚠️**Disclaimer**: This project is open sourced to solve problems that are critical to some users, and the functions provided may not be natively provided by GitHub Copilot. Therefore the contents,  opinions and views expressed in this project are solely mine do not necessarly refect the views of my employer, These are my personal notes based on myunderstanding of the code and trial deployments to GitHub Copilot. If anything is wrong with this article, please let me know through the [issues](https://github.com/satomic/copilot-proxy-insight-of-every-user/issues/new). l appreciate your help in correcting my understanding.
 
@@ -15,29 +15,37 @@
 | 1.4          | Fixed the verification logic bug of basic authentication; adjusted the proxy server side log format and added emoji🙂 to make the log very clear                                                                                                                                                                                                                 | 20241230  |
 | 1.5          | Add functionality to load and save usernames from a JSON file, In order to avoid the problem that sometimes requests do not carry Authorization, that cause requests to be dropped                                                                                                                                                                                                                 | 20250108  |
 | 1.6          |    Different event types have been added to logging and metrics, including `nes`, `agent`, `edits`, `chat-inline`, `chat-panel`.                                                                                                                                                                                                             | 20250224  |
-| 1.7          |    Added model tracking in metrics - now records which AI models are used within each editor version for more detailed analytics                                                                                                                                                                                          | 20250312  |
+| 1.7          |    1. Added model tracking in metrics - now records which AI models are used within each editor version for more detailed analytics.<br>2. Visualization with Grafana & Elasticsearch.<br>3. Deploy Guides                                                                                                                                                                                         | 20250312  |
 
 ## Table of contents
-- [Copilot Proxy Insight of Every User](#Copilot-Proxy-Insight-of-Every-User)
-- [Introduction](#Introduction)
-  - [Why Built This](#Why-Built-This)
-  - [Key Features](#Key-Features)
-- [Warning](#Warning)
-- [Features](#Features)
-  - [Normal Features](#Normal-Features)
-  - [Advanced Features](#Advanced-Features)
-- [How to Use](#How-to-Use)
-  - [Admin: Server Side](#Admin-Server-Side)
-    - [Install Proxy mitmproxy](#Install-Proxy-mitmproxy)
-    - [Configure proxy\_addons.py](#Configure-proxy_addonspy)
-  - [Users: Client Side](#Users-Client-Side)
-    - [Configure Proxy in IDEs & Install Certs](#Configure-Proxy-in-IDEs--Install-Certs)
-    - [By Using Copilot to Check if Proxy Works](#By-Using-Copilot-to-Check-if-Proxy-Works)
-- [Log samples](#Log-samples)
-  - [Metrics log](#Metrics-log)
-  - [Usage Log](#Usage-Log)
-    - [completions log ](#completions-log-)
-    - [chat log](#chat-log)
+- [Copilot Metrics for Every User](#copilot-metrics-for-every-user)
+- [Introduction](#introduction)
+    - [Why Built This](#why-built-this)
+    - [Key Features](#key-features)
+    - [Online Demo Environment](#online-demo-environment)
+- [Warning](#warning)
+- [Features](#features)
+    - [Normal Features](#normal-features)
+    - [Advanced Features](#advanced-features)
+- [Deploy: How to Use](#deploy-how-to-use)
+    - [Admin: Server Side Proxy](#admin-server-side-proxy)
+        - [Install Proxy mitmproxy](#install-proxy-mitmproxy)
+        - [Configure proxy\_addons.py](#configure-proxy_addonspy)
+    - [Admin: Server Side Visualization (Optional)](#admin-server-side-visualization-optional)
+        - [Download source code](#download-source-code)
+        - [Elasticsearch](#elasticsearch)
+        - [Grafana](#grafana)
+        - [mfe2es](#mfe2es)
+    - [Users: Client Side](#users-client-side)
+        - [Configure Proxy in IDEs & Install Certs](#configure-proxy-in-ides--install-certs)
+        - [By Using Copilot to Check if Proxy Works](#by-using-copilot-to-check-if-proxy-works)
+- [Log samples](#log-samples)
+    - [Proxy Server Side Log](#proxy-server-side-log)
+    - [Log Tree](#log-tree)
+    - [Metrics log](#metrics-log)
+    - [Usage Log Samples](#usage-log-samples)
+        - [completions log](#completions-log)
+        - [chat log](#chat-log)
 
 ---
 
@@ -50,23 +58,32 @@ Because according to the official Copilot document [REST API endpoints for Copil
 
 So, if you want to view the usage of Copilot, the smallest granularity is Teams, and it is a Team with at least 5 members. if this is OK for you, just follow [Copilot Usage Advanced Dashboard](https://github.com/satomic/copilot-usage-advanced-dashboard) to visualize it.
 
-But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copilot enabled, and you want to know the usage details of every users, try this project. this is why built this.
+But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copilot enabled, and you want to know the usage details of every users, models, Chat types, and the use of Extensions, try this project. this is why built this.
 
 
 ## Key Features
 - A proxy plugin to capture and log HTTP requests and responses between your IDE and GitHub Copilot APIs. 
 - Save the usage details data of every user, and generate user-dimensional metrics.
-- Whitelisting of Allowed users, supports basic authentication
+- Whitelisting of allowed users, supports basic authentication
+- Support for multiple IDEs, including JetBrains and VSCode
+- Visualization of the metrics for every user, model, chat types, and extensions with Grafana & Elasticsearch
+  ![grafana](image/grafana.png)
+
+## Online Demo Environment
+- link: [copilot-metrics-for-everyuser](https://softrin.com/d/cefl3gdj7m3uoa/metrics-for-everyuser)
+- username：`demouser`
+- password：`demouser`
+
 
 # Warning
-- these are general guidelines for copilot block:
-  1. **Do not change any GitHub Copilot http headers on network**
+- These are general guidelines for Copilot block:
+  1. **Do not change any GitHub Copilot HTTP headers on network**
   2. Do not share GitHub accounts and GitHub Copilot access
      - GitHub personal account can not be shared, GitHub can block those shared accounts.
      - GitHub Copilot access can not be shared between multiple users.
   3. Maintain a single GitHub Copilot access network outbound so one user do not access GitHub Copilot from different locations at the same time
-  4. do not use a program to generate copilot token, the token need to be requested from official GitHub Copilot IDE extension
-- GitHub does not recommend customer on solution that is not part of GitHub product, in the case of internet proxy officially GitHub support will not support issues on proxy or advise which proxy to use.
+  4. Do not use a program to generate Copilot token, the token needs to be requested from the official GitHub Copilot IDE extension
+- GitHub does not recommend customers on solutions that are not part of GitHub's product, in the case of internet proxy officially GitHub support will not support issues on proxy or advise which proxy to use.
 
 
 
@@ -75,21 +92,22 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 ## Normal Features
 
 - **Proxy traffic**. For a network-isolated development environment.
-- **Prompts Recording**. Captures HTTP requests and responses and logs the details to files, **this will let you know exactly what the code snippets (prompts) uploaded by Copilot are**.
+- **Prompts Recording**. Captures HTTP requests and responses and logs the details to files, **this will let you know exactly what the code snippets (prompts) sent by Copilot are**.
 
   ![](image/image_fbSoEERHlo.png)
 
 ## Advanced Features
 
-- **Usage Insight of Every User**. Supports basic authentication, this allows you to get the data of the user dimension, more deeper than team dimension.
+- **Copilot Metrics for Every User**. Supports basic authentication, this allows you to get the data of the user dimension, deeper than team dimension. 
+- **Visualization (Optional)** of the metrics for every user, model, chat types, and extensions with Grafana & Elasticsearch (All yellow services can be deployed on the same machine, `mfe2es` is short for **Metrics For Everyuser To ElasticSearch**).
+  ![](image/advanced-feature.png)
 
-  ![](image/image_9JLc0wvV1e.png)
 
 
 
-# How to Use
+# Deploy: How to Use
 
-## Admin: Server Side
+## Admin: Server Side Proxy
 
 ### Install Proxy `mitmproxy`
 
@@ -121,7 +139,7 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
    ```bash
    mitmdump --listen-host 0.0.0.0 --listen-port 8080 --set block_global=false -s proxy_addons.py
    ```
-3. The contents of the automatically generated `logs/user_auth.json` are as follows
+3. The contents of the automatically generated `auditlogs/user_auth.json` are as follows
    ```json
    {
        "satomic": "961aa8753b",
@@ -130,6 +148,122 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
    ```
 4. Tell these users their usernames and passwords
 
+## Admin: Server Side Visualization (Optional)
+- Before you start this section, strongly recommend you to read the [Copilot Usage Advanced Dashboard Special Notes](https://github.com/satomic/copilot-usage-advanced-dashboard?tab=readme-ov-file#special-notes) first. And strongly recommend you to deploy the Copilot Usage Advanced Dashboard first, and then deploy this project. Then you can reuse the same Docker, Elasticsearch and Grafana, and you don't need to deploy them again.
+- If you don't want to deploy the Copilot Usage Advanced Dashboard, you can also follow the guide to deploy Docker, Elasticsearch and Grafana, and then deploy this project. The only difference is that you need to deploy the `mfe2es` container separately, and the `mfe2es` container will be used to send the metrics data to Elasticsearch.
+
+
+### Download source code
+
+Put all the work in the `/srv` directory, click [download zip archive](https://github.com/satomic/copilot-metrics-4-every-user/archive/refs/heads/main.zip), unzip and rename the folder to `copilot-metrics-4-every-user`, or directly `git clone`
+
+```bash
+cd /srv
+git clone https://github.com/satomic/copilot-metrics-4-every-user.git
+cd copilot-metrics-4-every-user
+```
+
+### Elasticsearch
+> Assure that you have Elasticsearch running and accessible. Please refer to the previous steps [here](https://github.com/satomic/copilot-usage-advanced-dashboard?tab=readme-ov-file#installation).
+
+#### Create index
+
+1. Confirm that you are in the correct path
+   ```bash
+   cd /srv/copilot-metrics-4-every-user
+   ```
+2. Execute the script and create an index
+   ```bash
+   bash create_es_indexes.sh
+   ```
+   The following content is obtained, indicating ok
+   ```json
+   {"acknowledged":true,"shards_acknowledged":true,"index":"copilot_completions"}
+   {"acknowledged":true,"shards_acknowledged":true,"index":"copilot_chat"}
+   {"acknowledged":true,"shards_acknowledged":true,"index":"copilot_extension"}
+   ```
+3. verify
+   ```bash
+   curl -X GET http://localhost:9200/_cat/indices?v
+   ```
+   The following content is obtained, indicating ok
+   ```markdown
+   health status index                        uuid                   pri rep docs.count docs.deleted store.size pri.store.size dataset.size
+   yellow open   copilot_completions          XrOEfAngTS60VsuUz3Lbrw   1   1          0            0       227b           227b         227b
+   yellow open   copilot_chat                 xE6tkg5GQEOP-EP8pwAkYg   1   1          0            0       227b           227b         227b
+   yellow open   copilot_extension            6R_1cdlIQQOCv4BoHPqXCw   1   1          0            0       227b           227b         227b
+   ```
+
+### Grafana
+> Assure that you have Grafana running and accessible. Please refer to the previous steps [here](https://github.com/satomic/copilot-usage-advanced-dashboard?tab=readme-ov-file#installation-1).
+
+
+#### Adding Data sources via API
+
+1. Confirm that you are in the correct path
+   ```bash
+   cd /srv/copilot-metrics-4-every-user
+   ```
+2. Run the script to add data sources
+   ```bash
+   bash add_grafana_data_sources.sh
+   ```
+3. Visit the Grafana UI to confirm that the addition was successful
+
+
+#### Generate Dashboard Json Model
+
+1. Confirm that you are in the correct path
+   ```bash
+   cd /srv/copilot-metrics-4-every-user
+   ```
+2. Execute the script to generate a Grafana json model. Execute one of the following two commands
+   ```python
+   # Generate Copilot Metrics for Every User Dashboard
+   python3 gen_grafana_model.py --template=grafana/dashboard-template.json
+   ```
+   Get the output
+   ```markdown
+   Model saved to grafana/dashboard-model-2024-12-17.json, please import it to Grafana
+   ```
+
+
+#### Import the generated Json to create a Dashboard
+
+1. Download the generated file to your local computer
+   ```bash
+   scp root@<PUBLIC_IP_OF_YOUR_VM>:/srv/copilot-metrics-4-every-user/grafana/dashboard-model-*.json .
+   dashboard-model-2024-12-17.json                                                                                                                                                  100%  157KB 243.8KB/s   00:00
+   dashboard-model-data_sources_name_uid_mapping-2024-12-17.json                                                                                                                    100%  210     1.1KB/s   00:00
+   ```
+2. Copy the generated json file and import it into Grafana
+3. Congratulations, you now have a complete dashboard, but there should be no data yet. Next, run the core program.
+
+
+
+### mfe2es
+
+> is the abbreviation of the first characters of **Metrics For Everyuser To ElasticSearch**
+
+Parameter description
+- `LOG_PATH`: Log storage location, not recommended to modify. If modified, you need to modify the `-v` data volume mapping simultaneously.
+- `EXECUTION_INTERVAL`: Update interval, the default is to update the program every `1` minutes.
+
+```bash
+docker run -itd \
+--net=host \
+--restart=always \
+--name mfe2es \
+-e LOG_PATH="logs" \
+-e EXECUTION_INTERVAL=1 \
+-e ELASTICSEARCH_URL="http://localhost:9200" \
+-v /srv/auditlogs:/app/auditlogs \
+satomic/copilot-metrics-4-everyuser
+```
+
+Congratulations! now you can visit the Grafana UI and see the data in the dashboard. The data will be updated every minute, and you can also set the update interval in the `docker run` command.
+
+
 ## Users: Client Side
 
 ### Configure Proxy in IDEs & Install Certs
@@ -137,7 +271,7 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 1. now you can set the proxy in your IDE (VSCode as example here, if you are using JetBrains, after set proxy, you need to restart the JetBrains IDE), and the IP address is `127.0.0.1` as an example, please change it to your actual IP address.
    - for **normal features**, set the proxy like: `http://127.0.0.1:8080`, only if the Admin set `is_proxy_auth_needed = False` in Server side.
      ![](image/image_0XGhMWYhpy.png)
-   - for **advanced features**, set the proxy like: `http://your_username:your_passowrd@127.0.0.1:8080` (the username is `satomic`  and pwd is `961aa8753b `as an sample).
+   - for **advanced features**, set the proxy like: `http://your_username:your_passoword@127.0.0.1:8080` (the username is `satomic`  and pwd is `961aa8753b `as an sample).
      ![](image/image_G00s77UbR-.png)
 
      or in `settings.json`
@@ -145,11 +279,12 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
      "http.proxy": "http://satomic:961aa8753b@127.0.0.1:8080"
      ```
 2. However, at this time, IDE will prompt certificate errors, so a [certificate needs to be installed](https://docs.mitmproxy.org/stable/concepts-certificates/ "certificate needs to be installed"). The certificate download requires access to [mitm.it](mitm.it "mitm.it"), and the prerequisite for normal access is that mitmproxy is functioning normally. Therefore, before enabling the proxy, only requests that go through the proxy will return normal web pages.
+3. If you encounter the TLS error, please visit [Configuring network settings for GitHub Copilot](https://docs.github.com/en/copilot/managing-copilot/configure-personal-settings/configuring-network-settings-for-github-copilot) for help or raise a issue [here](https://github.com/satomic/copilot-metrics-4-every-user/issues/new).
 
 ### By Using Copilot to Check if Proxy Works
 
-1. now you can use the Copilot to generate code, and the request and response will be saved in the `logs` folder.&#x20;
-   - The `metrics` folder stores daily usage metrics statistics.&#x20;
+1. Now you can use the Copilot to generate code, and the request and response will be saved in the `auditlogs` folder.
+   - The `metrics` folder stores daily usage metrics statistics.
    - The `usage` folder is a subdirectory with the user name, which records the detailed data of `chat` and `completions` respectively.
 
 # Log samples
@@ -246,7 +381,17 @@ Below is a detailed explanation of the metrics JSON file structure:
                 // Other action types...
             },
             "completions_count": 0,       // Total code completion count for this user
-            "completions": {}             // Code completion data, grouped by editor version and language
+            "completions": {},              // Code completion data, grouped by editor version
+            "extension_count": 2,        // Total extension usage count for this user
+            "extensions": {              // Extension usage data, grouped by editor version
+                "vscode-1.98.0-insider": {  // Editor version
+                    "count": 2,            // Usage count for this editor version
+                    "models": {             // Statistics grouped by model
+                        "claude-3.7-sonnet-thought": 1,  // Model name and usage count
+                        "gpt-4o": 1                      // Model name and usage count
+                    }
+                }
+            }
         }
         // Other users...
     }
@@ -263,11 +408,11 @@ This structure allows you to analyze data across multiple dimensions:
 
 This multi-dimensional statistical data can help you gain deep insights into the Copilot usage patterns of each team member.
 
-## Usage Log
+## Usage Log Samples
+Logging is supported for different types of chat, including `nes`, `agent`, `edits`...
 
-不同类型的事件支持日志记录，包括 `nes`、`agent`、`edits`。
 ```
-├─logs
+├─auditlogs
 │  ├─metrics
 │  └─usage
 │      ├─anonymous
@@ -289,7 +434,7 @@ This multi-dimensional statistical data can help you gain deep insights into the
 │          └─completions
 ```
 
-### `completions` log&#x20;
+### `completions` log
 
 ```json
 {

@@ -125,3 +125,5 @@ tmp/
 *try*
 
 docker_run.sh
+
+gen_grafana_template.py

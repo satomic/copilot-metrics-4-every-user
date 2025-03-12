@@ -40,8 +40,6 @@ COPY main.py /app/
 COPY version /app/
 
 
-
-
 # Run the command one time
-# CMD ["python3", "main.py"]
-CMD ["sh", "proxy.sh"]
+CMD ["python3", "main.py"]
+# CMD ["sh", "proxy.sh"]
