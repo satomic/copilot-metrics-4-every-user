@@ -27,6 +27,9 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 COPY mitmdump /app/
 COPY proxy.sh /app/
 
+COPY certs/mitmproxy-ca-cert.pem /usr/local/share/ca-certificates/mitmproxy.crt
+RUN update-ca-certificates
+
 # Copy mapping folder to the working directory
 COPY mapping /app/mapping
 
@@ -35,6 +38,8 @@ COPY proxy_addons.py /app/
 COPY utils /app/utils
 COPY main.py /app/
 COPY version /app/
+
+
 
 
 # Run the command one time
