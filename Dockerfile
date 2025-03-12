@@ -25,6 +25,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy mitmdump
 COPY mitmdump /app/
+COPY proxy.sh /app/
 
 # Copy mapping folder to the working directory
 COPY mapping /app/mapping
