@@ -2,6 +2,10 @@
 # version: 1.6
 # mitmdump --listen-host 0.0.0.0 --listen-port 8080 --set block_global=false -s proxy_addons.py
 
+# u should better unselect the checkbox Proxy Strict SSL here:
+# https://docs.github.com/en/copilot/managing-copilot/configure-personal-settings/configuring-network-settings-for-github-copilot#configuring-a-proxy-in-visual-studio-code 
+
+
 import asyncio
 from mitmproxy import http, ctx
 from datetime import datetime

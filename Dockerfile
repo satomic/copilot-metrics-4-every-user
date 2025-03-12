@@ -32,7 +32,7 @@ COPY mapping /app/mapping
 
 # Copy the scripts to the working directory
 COPY proxy_addons.py /app/
-COPY utils /app/
+COPY utils /app/utils
 COPY main.py /app/
 COPY version /app/
 
