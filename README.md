@@ -74,14 +74,6 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 - username：`demouser`
 - password：`demouser`
 
-Grafana Samples
-![](image/byuser_editor.png)
-
-![](image/bymodel_types.png)
-
-![](image/total.png)
-
-
 
 # Warning
 - These are general guidelines for Copilot block:
