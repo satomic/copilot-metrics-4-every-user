@@ -77,7 +77,7 @@ ctx.log.info(init_info)
 class RequestTypeKeywords:
     completions = r"v1/engines/(.*)/completions" # copilot-codex / gpt-4o-copilot
     chat = r"chat/completions"
-    extension = r"agents/(.*)?chat"
+    extension = r"agents/(.*)"
 
 class RequestType:
     completions = "completions"
@@ -95,7 +95,7 @@ def get_request_type(flow: http.HTTPFlow):
         match = re.search(RequestTypeKeywords.extension, flow.request.url)
         if match:
             request_type = RequestType.extension
-            para_in_url = match.group(1).replace("?", "")
+            para_in_url = match.group(1).replace("?", "").replace("chat", "")
         elif RequestTypeKeywords.chat in flow.request.url:
             request_type = RequestType.chat
             para_in_url = None

@@ -120,6 +120,8 @@ logs/
 auditlogs/
 .idea/
 
+tmp/
+
 *try*
 
 docker_run.sh
