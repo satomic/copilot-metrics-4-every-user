@@ -182,7 +182,7 @@ class DataSplitter:
                         # 生成唯一哈希
                         extension_entry['unique_hash'] = generate_unique_hash(
                             extension_entry,
-                            key_properties=['day', 'username', 'extension_name', 'editor', 'model']
+                            key_properties=['day', 'username', 'extension', 'editor', 'model']
                         )
                         
                         extension_list.append(extension_entry)

@@ -50,7 +50,7 @@ allowed_usernames = [
 # Generate passwords for allowed users and save to user_auth.json
 user_auth = {username: generate_password(username, random_seed) for username in allowed_usernames}
 
-user_auth_file_path = os.path.join("logs", "user_auth.json")
+user_auth_file_path = os.path.join(log_file_path, "user_auth.json")
 os.makedirs(os.path.dirname(user_auth_file_path), exist_ok=True)
 
 try:
