@@ -1,0 +1,36 @@
+{
+  "mappings": {
+    "properties": {
+      "unique_hash" : {
+        "type" : "keyword"
+      },
+      "day" : {
+        "type" : "date"
+      },
+      "username": {
+        "type": "keyword"
+      },
+      "editor": {
+        "type": "keyword"
+      },
+      "model": {
+        "type": "keyword"
+      },
+      "language": {
+        "type": "keyword"
+      },
+      "count": {
+        "type": "long"
+      },
+      "last_updated_at" : {
+        "type" : "text",
+        "fields" : {
+          "keyword" : {
+            "type" : "keyword",
+            "ignore_above" : 256
+          }
+        }
+      }
+    }
+  }
+}

@@ -11,8 +11,9 @@ import os
 import hashlib
 import random
 import traceback
+import re
 
-version_date = "20250224"
+version_date = "20250312"
 
 def generate_password(username: str, seed: int) -> str:
     random.seed(seed)
@@ -21,7 +22,7 @@ def generate_password(username: str, seed: int) -> str:
     hashed = hashlib.sha256(input_string.encode("utf-8")).hexdigest()
     return hashed[:10]
 
-log_file_path = "logs"
+log_file_path = "auditlogs"
 
 # Conditional judgment, It is recommended to set it to True, which will perform rule checks on all requests to ensure that the number of chats and completions are not counted multiple times.
 conditional_judgment = True # False True
@@ -70,25 +71,35 @@ ctx.log.info(init_info)
 
 
 class RequestTypeKeywords:
-    completions = "copilot-codex/completions"
-    chat = "chat/completions"
+    completions = r"v1/engines/(.*)/completions" # copilot-codex / gpt-4o-copilot
+    chat = r"chat/completions"
+    extension = r"agents/(.*)?chat"
 
 class RequestType:
     completions = "completions"
     chat = "chat"
-
+    extension = "extension"
 
 def get_request_type(flow: http.HTTPFlow):
     # ctx.log.warn(f"💗 flow.request.url: {flow.request.url}")
-    # Determine type, discard if not one of the two types
-    if RequestTypeKeywords.completions in flow.request.url:
+    # Determine type, discard if not one of the three types
+    match = re.search(RequestTypeKeywords.completions, flow.request.url)
+    if match:
         request_type = RequestType.completions
-    elif RequestTypeKeywords.chat in flow.request.url:
-        request_type = RequestType.chat
+        para_in_url = match.group(1)
     else:
-        request_type = None
-    # ctx.log.warn(f"💗 request_type: {request_type}")
-    return request_type
+        match = re.search(RequestTypeKeywords.extension, flow.request.url)
+        if match:
+            request_type = RequestType.extension
+            para_in_url = match.group(1).replace("?", "")
+        elif RequestTypeKeywords.chat in flow.request.url:
+            request_type = RequestType.chat
+            para_in_url = None
+        else:
+            request_type = None
+            para_in_url = None
+    # ctx.log.info(f"💗 request_type: {request_type}, para_in_url: {para_in_url}")
+    return request_type, para_in_url
 
 
 class ContentHandler:
@@ -236,7 +247,7 @@ class ProxyReqRspSaveToFile:
         username, password = self.usernames.get(client_connect_address, ('anonymous', ''))
 
         # Determine type, discard if not one of the two types
-        request_type = get_request_type(flow)
+        request_type, para_in_url = get_request_type(flow)
 
         # https://docs.github.com/en/copilot/managing-copilot/managing-github-copilot-in-your-organization/configuring-your-proxy-server-or-firewall-for-copilot
         # only proxy Telemetry and API Service for Completions, excluding GitHub.com for Authorization and User management
@@ -269,7 +280,7 @@ class ProxyReqRspSaveToFile:
         self.metrics_file = os.path.join(self.metrics_file_path, f'copilot-usage_{self.current_date}.json')
 
         # Determine type, discard if not one of the two types
-        request_type = get_request_type(flow)
+        request_type, para_in_url = get_request_type(flow)
         if not request_type:
             return
 
@@ -284,6 +295,8 @@ class ProxyReqRspSaveToFile:
         content_response_list = ContentHandler.to_dicts(content_response)
 
         editor_version = headers_request.get('editor-version', '-').replace('/', '-')
+        model = content_request_dict.get('model', 'unknown') if request_type != RequestType.completions else para_in_url
+        extension = para_in_url if request_type == RequestType.extension else None
 
         if conditional_judgment:
             # VSCode Conditional judgment
@@ -335,7 +348,6 @@ class ProxyReqRspSaveToFile:
         # Concatenate string content
         timestamp = datetime.utcnow().isoformat()
         language = content_request_dict.get('extra', {}).get('language', 'unknown')
-        model = content_request_dict.get('model', 'unknown')
         openai_intent = headers_request.get('openai-intent', 'unknown')
         vscode_machineid = headers_request.get('vscode-machineid', '-')[0:10]
         client_connect_address = flow.client_conn.address[0]
@@ -351,11 +363,26 @@ class ProxyReqRspSaveToFile:
             elif openai_intent == "conversation-panel":
                 action_type = "chat-panel"
             elif openai_intent == "conversation-inline":
-                action_type = "chat-inline"
+                if "I have the following code open in the editor" in content_request:
+                    action_type = "code-review"
+                else:
+                    action_type = "chat-inline"
             elif model == "copilot-nes-v":
                 action_type = "nes"
+            elif openai_intent == "conversation-other":
+                if "<currentChange>" in content_request:
+                    action_type = "code-review"
+                elif "<user-commits>" in content_request:
+                    action_type = "commit-message"
+                else:
+                    action_type = "other"
             else:
                 action_type = "other"
+        elif request_type == RequestType.extension:
+            action_type = "extension"
+        else:
+            action_type = action_type
+
 
         log_entry = {
             'proxy-authorization': f'{username}:{password}',
@@ -384,12 +411,12 @@ class ProxyReqRspSaveToFile:
             with open(log_file_name, "w", encoding='utf8') as log_file:
                 log_file.write(json.dumps(log_entry, indent=4, ensure_ascii=False))
             ctx.log.info(f"😄 Log saved {log_file_name}")
-            self.update_and_save_metrics(request_type, username, editor_version, language, action_type)
+            self.update_and_save_metrics(request_type, username, editor_version, language, action_type, model, extension)
         except Exception as e:
             ctx.log.error(f"❌ Unable to save log to file: {traceback.format_exc(e)}")
             return
 
-    def update_and_save_metrics(self, request_type, username, editor_version, language, action_type):
+    def update_and_save_metrics(self, request_type, username, editor_version, language, action_type, model, extension):
         current_date = datetime.utcnow().date()
         if current_date != self.current_date:
             self.current_date = current_date
@@ -401,15 +428,18 @@ class ProxyReqRspSaveToFile:
                     existing_metrics = json.load(metrics_file)
                 total_chat_turns = existing_metrics.get("total_chat_turns", 0)
                 total_completions_count = existing_metrics.get("total_completions_count", 0)
+                total_extension_count = existing_metrics.get("total_extension_count", 0)
                 aggregated_metrics = existing_metrics.get("usage", {})
             except Exception as e:
-                ctx.log.error(f"❌ Unable to load existing metrics: {e}")
+                ctx.log.error(f"❌ Unable to load existing metrics: {traceback.format_exc(e)}")
                 total_chat_turns = 0
                 total_completions_count = 0
+                total_extension_count = 0
                 aggregated_metrics = {}
         else:
             total_chat_turns = 0
             total_completions_count = 0
+            total_extension_count = 0
             aggregated_metrics = {}
 
         if username not in aggregated_metrics:
@@ -417,34 +447,99 @@ class ProxyReqRspSaveToFile:
                 "chat_turns": 0,
                 "chat": {},
                 "completions_count": 0,
-                "completions": {}
+                "completions": {},
+                "extension_count": 0,
+                "extension": {}
             }
 
-        if request_type == "completions":
+        if request_type == RequestType.completions:
             if editor_version not in aggregated_metrics[username]["completions"]:
-                aggregated_metrics[username]["completions"][editor_version] = {}
-            if language not in aggregated_metrics[username]["completions"][editor_version]:
-                aggregated_metrics[username]["completions"][editor_version][language] = 0
-            aggregated_metrics[username]["completions"][editor_version][language] += 1
+                aggregated_metrics[username]["completions"][editor_version] = {
+                    "count": 0,
+                    "models": {}
+                }
+            
+            # 更新编辑器版本的计数
+            aggregated_metrics[username]["completions"][editor_version]["count"] += 1
+            
+            # 更新 models 统计作为 editor_version 的子集
+            if model not in aggregated_metrics[username]["completions"][editor_version]["models"]:
+                aggregated_metrics[username]["completions"][editor_version]["models"][model] = {
+                    "count": 0,
+                    "languages": {}
+                }
+            aggregated_metrics[username]["completions"][editor_version]["models"][model]["count"] += 1
+            
+
+            if language not in aggregated_metrics[username]["completions"][editor_version]["models"][model]["languages"]:
+                aggregated_metrics[username]["completions"][editor_version]["models"][model]["languages"][language] = 0
+            aggregated_metrics[username]["completions"][editor_version]["models"][model]["languages"][language] += 1
+            
             aggregated_metrics[username]["completions_count"] += 1
             total_completions_count += 1
-        else:
+        elif request_type == RequestType.chat:
             if action_type not in aggregated_metrics[username]["chat"]:
                 aggregated_metrics[username]["chat"][action_type] = {
                     "chat_turns": 0,
-                    "editor_version": {},
+                    "editor_version": {}
                 }
+            
+            # 更新 editor_version 统计，将 models 作为 editor_version 的子集
             if editor_version not in aggregated_metrics[username]["chat"][action_type]["editor_version"]:
-                aggregated_metrics[username]["chat"][action_type]["editor_version"][editor_version] = 0
-            aggregated_metrics[username]["chat"][action_type]["editor_version"][editor_version] += 1
+                aggregated_metrics[username]["chat"][action_type]["editor_version"][editor_version] = {
+                    "count": 0,
+                    "models": {}
+                }
+            
+            # 更新编辑器版本的计数
+            aggregated_metrics[username]["chat"][action_type]["editor_version"][editor_version]["count"] += 1
+            
+            # 更新 models 统计作为 editor_version 的子集
+            if model not in aggregated_metrics[username]["chat"][action_type]["editor_version"][editor_version]["models"]:
+                aggregated_metrics[username]["chat"][action_type]["editor_version"][editor_version]["models"][model] = 0
+            aggregated_metrics[username]["chat"][action_type]["editor_version"][editor_version]["models"][model] += 1
+            
             aggregated_metrics[username]["chat"][action_type]["chat_turns"] += 1
             aggregated_metrics[username]["chat_turns"] += 1
             total_chat_turns += 1
+
+        elif request_type == RequestType.extension:
+            if extension not in aggregated_metrics[username]["extension"]:
+                aggregated_metrics[username]["extension"][extension] = {
+                    "count": 0,
+                    "editor_version": {}
+                }
+            
+            # 更新 editor_version 统计，将 models 作为 editor_version 的子集
+            if editor_version not in aggregated_metrics[username]["extension"][extension]["editor_version"]:
+                aggregated_metrics[username]["extension"][extension]["editor_version"][editor_version] = {
+                    "count": 0,
+                    "models": {}
+                }
+            
+            # 更新编辑器版本的计数
+            aggregated_metrics[username]["extension"][extension]["editor_version"][editor_version]["count"] += 1
+            
+            # 更新 models 统计作为 editor_version 的子集
+            if model not in aggregated_metrics[username]["extension"][extension]["editor_version"][editor_version]["models"]:
+                aggregated_metrics[username]["extension"][extension]["editor_version"][editor_version]["models"][model] = 0
+            aggregated_metrics[username]["extension"][extension]["editor_version"][editor_version]["models"][model] += 1
+            
+            aggregated_metrics[username]["extension"][extension]["count"] += 1
+            aggregated_metrics[username]["extension_count"] += 1
+            total_extension_count += 1
+
+        else:
+            ctx.log.error(f"❌ Unknown request type: {request_type}")
+            
+
+
 
         metrics_summary = {
             "day": str(self.current_date),
             "total_chat_turns": total_chat_turns,
             "total_completions_count": total_completions_count,
+            "total_extension_count": total_extension_count,
             "usage": aggregated_metrics
         }
 

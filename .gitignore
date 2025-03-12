@@ -117,6 +117,9 @@ venv.bak/
 .pytest_cache/
 
 logs/
+auditlogs/
 .idea/
 
 *try*
+
+docker_run.sh

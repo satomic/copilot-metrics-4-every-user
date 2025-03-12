@@ -1,0 +1,1 @@
+docker build -t satomic/copilot-metrics-4-everyuser:`date +'%Y%m%d'` .

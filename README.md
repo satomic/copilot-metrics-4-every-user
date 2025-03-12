@@ -15,6 +15,7 @@
 | 1.4          | Fixed the verification logic bug of basic authentication; adjusted the proxy server side log format and added emoji🙂 to make the log very clear                                                                                                                                                                                                                 | 20241230  |
 | 1.5          | Add functionality to load and save usernames from a JSON file, In order to avoid the problem that sometimes requests do not carry Authorization, that cause requests to be dropped                                                                                                                                                                                                                 | 20250108  |
 | 1.6          |    Different event types have been added to logging and metrics, including `nes`, `agent`, `edits`, `chat-inline`, `chat-panel`.                                                                                                                                                                                                             | 20250224  |
+| 1.7          |    Added model tracking in metrics - now records which AI models are used within each editor version for more detailed analytics                                                                                                                                                                                          | 20250312  |
 
 ## Table of contents
 - [Copilot Proxy Insight of Every User](#Copilot-Proxy-Insight-of-Every-User)
@@ -206,72 +207,65 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 ![](image/image_pODAu2gCUW.png)
 
 ## Metrics log
-Different event types supported for metrics, including `nes`, `agent`, `edits`.
+Different event types are now visible in metrics, including `nes`, `agent`, `edits`, `chat-inline`, `chat-panel`, etc. Additionally, statistics are now tracked by model type, recording the number of times different AI models are used within each editor version.
+
+Below is a detailed explanation of the metrics JSON file structure:
+
 ```json
 {
-    "day": "2025-02-24",
-    "total_chat_turns": 36,
-    "total_completions_count": 3,
-    "usage": {
-        "satomic": {
-            "chat_turns": 35,
-            "chat": {
-                "edits": {
-                    "chat_turns": 4,
-                    "editor_version": {
-                        "vscode-1.97.2": 2,
-                        "vscode-1.98.0-insider": 2
-                    },
-                },
-                "agent": {
-                    "chat_turns": 2,
-                    "editor_version": {
-                        "vscode-1.98.0-insider": 2
-                    }
-                },
-                "chat-panel": {
-                    "chat_turns": 11,
-                    "editor_version": {
-                        "simulation-tests-editor-1.85": 10,
-                        "vscode-1.98.0-insider": 1
+    "day": "2025-03-11",                  // Current date
+    "total_chat_turns": 162,              // Total chat turns from all users for the day
+    "total_completions_count": 0,         // Total code completions from all users for the day
+    "usage": {                            // Usage data grouped by users
+        "satomic": {                      // Username
+            "chat_turns": 162,            // Total chat turns for this user
+            "chat": {                     // Chat-related data, grouped by action type
+                "chat-panel": {           // Chat panel interactions
+                    "chat_turns": 31,     // Number of chat turns for this action type
+                    "editor_version": {   // Grouped by editor version
+                        "vscode-1.98.0-insider": {  // Editor version
+                            "count": 31,  // Usage count for this editor version
+                            "models": {   // Statistics grouped by model
+                                "claude-3.7-sonnet-thought": 15,  // Model name and usage count
+                                "gpt-4o": 16                      // Model name and usage count
+                            }
+                        }
                     }
                 },
                 "nes": {
-                    "chat_turns": 18,
+                    "chat_turns": 101,
                     "editor_version": {
-                        "simulation-tests-editor-1.85": 18
+                        "simulation-tests-editor-1.85": {
+                            "count": 101,
+                            "models": {
+                                "copilot-nes-v": 101
+                            }
+                        }
                     }
                 }
+                // Other action types...
             },
-            "completions_count": 2,
-            "completions": {
-                "vscode-1.97.2": {
-                    "jsonc": 2
-                }
-            }
-        },
-        "xuefeng": {
-            "chat_turns": 1,
-            "chat": {
-                "edits": {
-                    "total_turns": 1,
-                    "vscode-1.97.2": 1
-                }
-            },
-            "completions_count": 1,
-            "completions": {
-                "vscode-1.97.2": {
-                    "jsonc": 1
-                }
-            }
+            "completions_count": 0,       // Total code completion count for this user
+            "completions": {}             // Code completion data, grouped by editor version and language
         }
+        // Other users...
     }
 }
 ```
 
+This structure allows you to analyze data across multiple dimensions:
+- Usage analysis by user
+- Differentiation between chat functions and code completion features
+- Grouping by action type (chat panel, inline chat, edits, etc.)
+- Analysis by editor version
+- Analysis by AI model type
+- For code completion features, analysis by programming language
+
+This multi-dimensional statistical data can help you gain deep insights into the Copilot usage patterns of each team member.
+
 ## Usage Log
 
-Different event types supported for logging, including `nes`, `agent`, `edits`.
+不同类型的事件支持日志记录，包括 `nes`、`agent`、`edits`。
 ```
 ├─logs
 │  ├─metrics
