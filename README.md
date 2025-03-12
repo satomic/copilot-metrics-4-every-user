@@ -380,20 +380,47 @@ Below is a detailed explanation of the metrics JSON file structure:
                 }
                 // Other action types...
             },
-            "completions_count": 0,       // Total code completion count for this user
-            "completions": {},              // Code completion data, grouped by editor version
-            "extension_count": 2,        // Total extension usage count for this user
-            "extensions": {              // Extension usage data, grouped by editor version
-                "vscode-1.98.0-insider": {  // Editor version
-                    "count": 2,            // Usage count for this editor version
-                    "models": {             // Statistics grouped by model
-                        "claude-3.7-sonnet-thought": 1,  // Model name and usage count
-                        "gpt-4o": 1                      // Model name and usage count
+            "completions_count": 14,
+            "completions": {
+                "vscode-1.98.1": {
+                    "count": 14,
+                    "models": {
+                        "gpt-4o-copilot": {
+                            "count": 14,
+                            "languages": {
+                                "python": 14
+                            }
+                        }
+                    }
+                }
+            },
+            "extension_count": 4,
+            "extension": {
+                "roulette-play": {
+                    "count": 1,
+                    "editor_version": {
+                        "vscode-1.99.0-insider": {
+                            "count": 2,
+                            "models": {
+                                "gpt-4o": 2
+                            }
+                        }
+                    }
+                },
+                "cute-cat-assistant": {
+                    "count": 2,
+                    "editor_version": {
+                        "vscode-1.98.1": {
+                            "count": 2,
+                            "models": {
+                                "gpt-4o": 1,
+                                "gemini-2.0-flash-001": 1
+                            }
+                        }
                     }
                 }
             }
         }
-        // Other users...
     }
 }
 ```
