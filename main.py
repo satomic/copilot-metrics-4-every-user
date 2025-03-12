@@ -272,10 +272,10 @@ if __name__ == "__main__":
     while True:
         try:
             main()
-            logger.info(f"Sleeping for {Paras.execution_interval} hours before next execution...")
-            for _ in range(Paras.execution_interval * 3600 // 3600):
+            logger.info(f"Sleeping for {Paras.execution_interval} minutes before next execution...")
+            for _ in range(Paras.execution_interval * 60 // 60):
                 logger.info("Heartbeat: still running...")
-                time.sleep(3600)
+                time.sleep(60)
         except Exception as e:
             logger.error(f"An error occurred: {traceback.format_exc(e)}")
             time.sleep(5)
