@@ -260,10 +260,10 @@ def main():
         es_manager.write_to_es(Indexes.index_completions, data)
     
     for data in chat_list:
-        es_manager.write_to_es(Indexes.index_name_breakdown, data)
+        es_manager.write_to_es(Indexes.index_chat, data)
 
     for data in extension_list:
-        es_manager.write_to_es(Indexes.index_name_breakdown_chat, data)
+        es_manager.write_to_es(Indexes.index_extension, data)
     
     logger.info(f"Data processing completed successfully.")
 
