@@ -16,7 +16,7 @@
 | 1.5          | Add functionality to load and save usernames from a JSON file, In order to avoid the problem that sometimes requests do not carry Authorization, that cause requests to be dropped                                                                                                                                                                                                                 | 20250108  |
 | 1.6          |    Different event types have been added to logging and metrics, including `nes`, `agent`, `edits`, `chat-inline`, `chat-panel`.                                                                                                                                                                                                             | 20250224  |
 | 1.7          |    1. Added model tracking in metrics - now records which AI models are used within each editor version for more detailed analytics.<br>2. Visualization with Grafana & Elasticsearch.<br>3. Deploy Guides                                                                                                                                                                                         | 20250312  |
-| 1.8          |   Add support for segmentation of inline chat event types: `fix/explain/docs/tests`. Added tracking for the new metrics and implemented corresponding log updates.   | 20250314  |
+| 1.8          |   1. Add support for segmentation of inline chat event types: `fix/explain/docs/tests`. Added tracking for the new metrics and implemented corresponding log updates.<br>2. [Copilot MCP](https://github.com/VikashLoomba/copilot-mcp) compatible metrics   | 20250314  |
 
 
 ## Table of contents

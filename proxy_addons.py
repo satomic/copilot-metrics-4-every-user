@@ -353,6 +353,7 @@ class ProxyReqRspSaveToFile:
         timestamp = datetime.utcnow().isoformat()
         language = content_request_dict.get('extra', {}).get('language', 'unknown')
         openai_intent = headers_request.get('openai-intent', 'unknown')
+        x_onbehalf_extension_id = headers_request.get('x-onbehalf-extension-id', None)
         vscode_machineid = headers_request.get('vscode-machineid', '-')[0:10]
         client_connect_address = flow.client_conn.address[0]
         username, password = self.usernames.get(client_connect_address, ('anonymous', ''))
@@ -383,7 +384,9 @@ class ProxyReqRspSaveToFile:
             elif model == "copilot-nes-v":
                 action_type = "nes"
             elif openai_intent == "conversation-other":
-                if "<currentChange>" in content_request:
+                if x_onbehalf_extension_id is not None:
+                    action_type = x_onbehalf_extension_id.replace("/", "_")
+                elif "<currentChange>" in content_request:
                     action_type = "code-review"
                 elif "<user-commits>" in content_request:
                     action_type = "commit-message"
