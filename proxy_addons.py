@@ -385,7 +385,7 @@ class ProxyReqRspSaveToFile:
                 action_type = "nes"
             elif openai_intent == "conversation-other":
                 if x_onbehalf_extension_id is not None:
-                    action_type = x_onbehalf_extension_id.split("/")[-1]
+                    action_type = x_onbehalf_extension_id.split(".")[1].split("/")[0]
                 elif "<currentChange>" in content_request:
                     action_type = "code-review"
                 elif "<user-commits>" in content_request:
