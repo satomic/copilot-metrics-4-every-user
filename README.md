@@ -70,6 +70,8 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 - Support for multiple IDEs, including JetBrains and VSCode
 - Visualization of the metrics for every user, model, chat types, and extensions with Grafana & Elasticsearch
   ![grafana](image/grafana.png)
+  ![grafana](image/grafana2.png)
+  ![grafana](image/grafana3.png)
 
 ## Online Demo Environment
 - link: [copilot-metrics-for-everyuser](https://softrin.com/d/cefl3gdj7m3uoa/metrics-for-everyuser)
