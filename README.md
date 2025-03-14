@@ -16,6 +16,8 @@
 | 1.5          | Add functionality to load and save usernames from a JSON file, In order to avoid the problem that sometimes requests do not carry Authorization, that cause requests to be dropped                                                                                                                                                                                                                 | 20250108  |
 | 1.6          |    Different event types have been added to logging and metrics, including `nes`, `agent`, `edits`, `chat-inline`, `chat-panel`.                                                                                                                                                                                                             | 20250224  |
 | 1.7          |    1. Added model tracking in metrics - now records which AI models are used within each editor version for more detailed analytics.<br>2. Visualization with Grafana & Elasticsearch.<br>3. Deploy Guides                                                                                                                                                                                         | 20250312  |
+| 1.8          |   Add support for segmentation of inline chat event types: `fix/explain/docs/tests`. Added tracking for the new metrics and implemented corresponding log updates.   | 20250314  |
+
 
 ## Table of contents
 - [Copilot Metrics for Every User](#copilot-metrics-for-every-user)
@@ -149,7 +151,8 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 4. Tell these users their usernames and passwords
 
 ## Admin: Server Side Visualization (Optional)
-- Before you start this section, strongly recommend you to read the [Copilot Usage Advanced Dashboard Special Notes](https://github.com/satomic/copilot-usage-advanced-dashboard?tab=readme-ov-file#special-notes) first. And strongly recommend you to deploy the Copilot Usage Advanced Dashboard first, and then deploy this project. Then you can reuse the same Docker, Elasticsearch and Grafana, and you don't need to deploy them again.
+- Before you start this section, strongly recommend you to read the [Copilot Usage Advanced Dashboard Special Notes](https://github.com/satomic/copilot-usage-advanced-dashboard?tab=readme-ov-file#special-notes) first. And strongly recommend you to deploy the Copilot Usage Advanced Dashboard first, and then deploy this project. Then you can reuse the same Docker, Elasticsearch and Grafana, and you don't need to deploy them again. Your architecture will look like this:
+  ![](image/arch.png)
 - If you don't want to deploy the Copilot Usage Advanced Dashboard, you can also follow the guide to deploy Docker, Elasticsearch and Grafana, and then deploy this project. The only difference is that you need to deploy the `mfe2es` container separately, and the `mfe2es` container will be used to send the metrics data to Elasticsearch.
 
 

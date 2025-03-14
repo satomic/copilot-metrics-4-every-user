@@ -17,7 +17,7 @@ import random
 import traceback
 import re
 
-version_date = "20250312"
+version_date = "20250314"
 
 def generate_password(username: str, seed: int) -> str:
     random.seed(seed)
@@ -365,9 +365,18 @@ class ProxyReqRspSaveToFile:
             elif openai_intent == "conversation-edits":
                 action_type = "edits"
             elif openai_intent == "conversation-panel":
-                action_type = "chat-panel"
+                if "Write an explanation for the active selection as paragraphs of text" in content_request:
+                    action_type = "explain"
+                else:
+                    action_type = "chat-panel"
             elif openai_intent == "conversation-inline":
-                if "I have the following code open in the editor" in content_request:
+                if "Please find a fix for my code so that the result is without any errors" in content_request:
+                    action_type = "fix"
+                elif "Please, given sum, generate docstring only" in content_request:
+                    action_type = "docs"
+                elif "Please, generate tests" in content_request or "Generate tests accordingly" in content_request:
+                    action_type = "tests"
+                elif "I have the following code open in the editor" in content_request:
                     action_type = "code-review"
                 else:
                     action_type = "chat-inline"
