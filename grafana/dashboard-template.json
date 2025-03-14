@@ -54,6 +54,19 @@
             "type": "text"
         },
         {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 1
+            },
+            "id": 20,
+            "panels": [],
+            "title": "Visualizations",
+            "type": "row"
+        },
+        {
             "datasource": {
                 "type": "elasticsearch",
                 "uid": "elasticsearch-completions-uid"
@@ -80,7 +93,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 0,
-                "y": 1
+                "y": 2
             },
             "id": 3,
             "options": {
@@ -168,7 +181,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 4,
-                "y": 1
+                "y": 2
             },
             "id": 4,
             "options": {
@@ -256,7 +269,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 8,
-                "y": 1
+                "y": 2
             },
             "id": 5,
             "options": {
@@ -345,7 +358,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 12,
-                "y": 1
+                "y": 2
             },
             "id": 6,
             "options": {
@@ -439,7 +452,7 @@
                 "h": 10,
                 "w": 2,
                 "x": 16,
-                "y": 1
+                "y": 2
             },
             "id": 1,
             "options": {
@@ -545,7 +558,7 @@
                 "h": 10,
                 "w": 6,
                 "x": 18,
-                "y": 1
+                "y": 2
             },
             "id": 2,
             "options": {
@@ -629,7 +642,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 0,
-                "y": 11
+                "y": 12
             },
             "id": 9,
             "options": {
@@ -717,7 +730,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 4,
-                "y": 11
+                "y": 12
             },
             "id": 10,
             "options": {
@@ -805,7 +818,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 8,
-                "y": 11
+                "y": 12
             },
             "id": 11,
             "options": {
@@ -894,7 +907,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 12,
-                "y": 11
+                "y": 12
             },
             "id": 12,
             "options": {
@@ -988,7 +1001,7 @@
                 "h": 10,
                 "w": 2,
                 "x": 16,
-                "y": 11
+                "y": 12
             },
             "id": 7,
             "options": {
@@ -1094,7 +1107,7 @@
                 "h": 10,
                 "w": 6,
                 "x": 18,
-                "y": 11
+                "y": 12
             },
             "id": 13,
             "options": {
@@ -1178,7 +1191,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 0,
-                "y": 21
+                "y": 22
             },
             "id": 14,
             "options": {
@@ -1236,7 +1249,7 @@
                     "timeField": "day"
                 }
             ],
-            "title": "Extension Count by User",
+            "title": "Extension Count  by User",
             "type": "piechart"
         },
         {
@@ -1266,7 +1279,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 4,
-                "y": 21
+                "y": 22
             },
             "id": 15,
             "options": {
@@ -1354,7 +1367,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 8,
-                "y": 21
+                "y": 22
             },
             "id": 16,
             "options": {
@@ -1443,7 +1456,7 @@
                 "h": 10,
                 "w": 4,
                 "x": 12,
-                "y": 21
+                "y": 22
             },
             "id": 17,
             "options": {
@@ -1537,7 +1550,7 @@
                 "h": 10,
                 "w": 2,
                 "x": 16,
-                "y": 21
+                "y": 22
             },
             "id": 8,
             "options": {
@@ -1643,7 +1656,7 @@
                 "h": 10,
                 "w": 6,
                 "x": 18,
-                "y": 21
+                "y": 22
             },
             "id": 18,
             "options": {
@@ -1699,6 +1712,583 @@
             ],
             "title": "Extension Count by Day",
             "type": "barchart"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-chat-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "blue",
+                        "mode": "fixed"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "series",
+                        "axisGridShow": false,
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "barWidthFactor": 0.6,
+                        "drawStyle": "line",
+                        "fillOpacity": 20,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "smooth",
+                        "lineStyle": {
+                            "dash": [
+                                10,
+                                10
+                            ],
+                            "fill": "dash"
+                        },
+                        "lineWidth": 1,
+                        "pointSize": 15,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "always",
+                        "spanNulls": true,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 6,
+                "w": 24,
+                "x": 0,
+                "y": 32
+            },
+            "id": 25,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": false
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [
+                        {
+                            "field": "day",
+                            "id": "2",
+                            "settings": {
+                                "interval": "1d"
+                            },
+                            "type": "date_histogram"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-extension-uid"
+                    },
+                    "metrics": [
+                        {
+                            "field": "count",
+                            "id": "1",
+                            "type": "sum"
+                        }
+                    ],
+                    "query": "",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Time Range Picker",
+            "type": "timeseries"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 38
+            },
+            "id": 21,
+            "panels": [],
+            "title": "Tables",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-completions-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto",
+                            "wrapText": false
+                        },
+                        "filterable": true,
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "count"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "gauge",
+                                    "valueDisplayMode": "color"
+                                }
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "thresholds"
+                                }
+                            },
+                            {
+                                "id": "custom.align",
+                                "value": "left"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 12,
+                "w": 24,
+                "x": 0,
+                "y": 39
+            },
+            "id": 22,
+            "options": {
+                "cellHeight": "sm",
+                "footer": {
+                    "countRows": false,
+                    "enablePagination": false,
+                    "fields": [
+                        "count"
+                    ],
+                    "reducer": [
+                        "sum"
+                    ],
+                    "show": true
+                },
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "desc": true,
+                        "displayName": "count"
+                    }
+                ]
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-chat-uid"
+                    },
+                    "metrics": [
+                        {
+                            "id": "1",
+                            "settings": {
+                                "size": "500"
+                            },
+                            "type": "raw_data"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_completions AND language: $language",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Completions",
+            "transformations": [
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {
+                            "_id": true,
+                            "_index": true,
+                            "_type": true,
+                            "highlight": true,
+                            "sort": true,
+                            "unique_hash": true
+                        },
+                        "includeByName": {},
+                        "indexByName": {
+                            "_id": 6,
+                            "_index": 7,
+                            "_type": 9,
+                            "count": 8,
+                            "day": 1,
+                            "editor": 3,
+                            "highlight": 10,
+                            "language": 5,
+                            "last_updated_at": 0,
+                            "model": 4,
+                            "sort": 11,
+                            "unique_hash": 12,
+                            "username": 2
+                        },
+                        "renameByName": {}
+                    }
+                }
+            ],
+            "type": "table"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-chat-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto",
+                            "wrapText": false
+                        },
+                        "filterable": true,
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "count"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "gauge",
+                                    "valueDisplayMode": "color"
+                                }
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "thresholds"
+                                }
+                            },
+                            {
+                                "id": "custom.align",
+                                "value": "left"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 12,
+                "w": 24,
+                "x": 0,
+                "y": 51
+            },
+            "id": 23,
+            "options": {
+                "cellHeight": "sm",
+                "footer": {
+                    "countRows": false,
+                    "enablePagination": false,
+                    "fields": [
+                        "count"
+                    ],
+                    "reducer": [
+                        "sum"
+                    ],
+                    "show": true
+                },
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "desc": true,
+                        "displayName": "count"
+                    }
+                ]
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-extension-uid"
+                    },
+                    "metrics": [
+                        {
+                            "id": "1",
+                            "settings": {
+                                "size": "500"
+                            },
+                            "type": "raw_data"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_chat AND chat_type: $chat_type",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Chat",
+            "transformations": [
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {
+                            "_id": true,
+                            "_index": true,
+                            "_type": true,
+                            "highlight": true,
+                            "sort": true,
+                            "unique_hash": true
+                        },
+                        "includeByName": {},
+                        "indexByName": {
+                            "_id": 6,
+                            "_index": 7,
+                            "_type": 9,
+                            "chat_type": 5,
+                            "count": 8,
+                            "day": 1,
+                            "editor": 3,
+                            "highlight": 10,
+                            "last_updated_at": 0,
+                            "model": 4,
+                            "sort": 11,
+                            "unique_hash": 12,
+                            "username": 2
+                        },
+                        "renameByName": {}
+                    }
+                }
+            ],
+            "type": "table"
+        },
+        {
+            "datasource": {
+                "type": "elasticsearch",
+                "uid": "elasticsearch-extension-uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto",
+                            "wrapText": false
+                        },
+                        "filterable": true,
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green"
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "count"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "gauge",
+                                    "valueDisplayMode": "color"
+                                }
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "thresholds"
+                                }
+                            },
+                            {
+                                "id": "custom.align",
+                                "value": "left"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 12,
+                "w": 24,
+                "x": 0,
+                "y": 63
+            },
+            "id": 24,
+            "options": {
+                "cellHeight": "sm",
+                "footer": {
+                    "countRows": false,
+                    "enablePagination": false,
+                    "fields": [
+                        "count"
+                    ],
+                    "reducer": [
+                        "sum"
+                    ],
+                    "show": true
+                },
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "desc": true,
+                        "displayName": "count"
+                    }
+                ]
+            },
+            "pluginVersion": "11.4.0",
+            "targets": [
+                {
+                    "alias": "",
+                    "bucketAggs": [],
+                    "datasource": {
+                        "type": "elasticsearch",
+                        "uid": "elasticsearch-extension-uid"
+                    },
+                    "metrics": [
+                        {
+                            "id": "1",
+                            "settings": {
+                                "size": "500"
+                            },
+                            "type": "raw_data"
+                        }
+                    ],
+                    "query": "username: $username AND editor: $editor AND model: $model_extension AND extension: $extension",
+                    "refId": "A",
+                    "timeField": "day"
+                }
+            ],
+            "title": "Extension",
+            "transformations": [
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {
+                            "_id": true,
+                            "_index": true,
+                            "_type": true,
+                            "highlight": true,
+                            "sort": true,
+                            "unique_hash": true
+                        },
+                        "includeByName": {},
+                        "indexByName": {
+                            "_id": 6,
+                            "_index": 7,
+                            "_type": 9,
+                            "count": 8,
+                            "day": 1,
+                            "editor": 3,
+                            "extension": 5,
+                            "highlight": 10,
+                            "last_updated_at": 0,
+                            "model": 4,
+                            "sort": 11,
+                            "unique_hash": 12,
+                            "username": 2
+                        },
+                        "renameByName": {}
+                    }
+                }
+            ],
+            "type": "table"
         }
     ],
     "preload": false,
@@ -1868,6 +2458,6 @@
     "timezone": "browser",
     "title": "Metrics for Everyuser",
     "uid": "cefl3gdj7m3uoa",
-    "version": 20,
+    "version": 25,
     "weekStart": ""
 }
