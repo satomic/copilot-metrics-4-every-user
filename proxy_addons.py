@@ -204,9 +204,9 @@ class ProxyReqRspSaveToFile:
         # in VSCode http://username:password@proxy_address:port
         # in JetBrains proxy_address port username password
         ctx.log.info(f"====================================================================================================")
-        ctx.log.info(f"✅ http_connect flow.request.url: {flow.request.url}")
-        
         client_connect_address = flow.client_conn.address[0]
+        ctx.log.info(f"✅ http_connect from {client_connect_address} to flow.request.url: {flow.request.url}")
+    
         username, password = self.get_username_password(flow)
         if username != "anonymous":
             ctx.log.info(f"✅ Obtained Proxy-Authorization, username: {username}")
