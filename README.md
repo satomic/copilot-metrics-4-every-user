@@ -74,7 +74,7 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
   ![grafana](image/grafana3.png)
 
 ## Online Demo Environment
-- link: [copilot-metrics-for-everyuser](https://softrin.com/d/cefl3gdj7m3uoa/metrics-for-everyuser)
+- link: [copilot-metrics-for-everyuser](https://softrin.com/d/cefl3gdj7m3uoa/metrics-for-everyuser?orgId=1&from=2025-03-07T11:50:58.053Z&to=2025-03-18T06:41:38.053Z&timezone=browser&var-username=$__all&var-editor=$__all&var-model_completions=$__all&var-model_chat=$__all&var-model_extension=$__all&var-language=$__all&var-chat_type=$__all&var-extension=$__all)
 - username：`demouser`
 - password：`demouser`
 
