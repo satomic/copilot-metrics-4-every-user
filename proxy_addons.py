@@ -17,7 +17,7 @@ import random
 import traceback
 import re
 
-version_date = "20250314"
+version_date = "20250619"
 
 def generate_password(username: str, seed: int) -> str:
     random.seed(seed)
@@ -359,6 +359,7 @@ class ProxyReqRspSaveToFile:
         username, password = self.usernames.get(client_connect_address, ('anonymous', ''))
 
         # what type of action is this? chat or completions? or NES, Agent, Edit? 
+        content_request = str(content_request_dict.get('messages', [{}])[-2:])
         action_type = "completions"
         if request_type == RequestType.chat:
             if openai_intent == "conversation-agent":
@@ -381,7 +382,7 @@ class ProxyReqRspSaveToFile:
                     action_type = "code-review"
                 else:
                     action_type = "chat-inline"
-            elif model == "copilot-nes-v":
+            elif "nes" in model: # "copilot-nes-v", "copilot-nes-xtab"
                 action_type = "nes"
             elif openai_intent == "conversation-other":
                 if x_onbehalf_extension_id is not None:
