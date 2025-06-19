@@ -299,6 +299,8 @@ class ProxyReqRspSaveToFile:
         content_response_list = ContentHandler.to_dicts(content_response)
 
         editor_version = headers_request.get('editor-version', '-').replace('/', '-')
+        x_initiator = headers_request.get('x-initiator', None)
+        x_interaction_type = headers_request.get('x-interaction-type', None)
         model = content_request_dict.get('model', 'unknown') if request_type != RequestType.completions else para_in_url
         extension = para_in_url if request_type == RequestType.extension else None
 
@@ -338,7 +340,7 @@ class ProxyReqRspSaveToFile:
                         ctx.log.warn(f'⚠️ Skipping invalid chat response, cuz last_role_in_messages is not type of `user`: {last_role_in_messages}')
                         return
                     tools_request = content_request_dict.get('tools')
-                    if tools_request is not None:
+                    if tools_request is not None and x_initiator == 'agent':
                         ctx.log.warn(f'⚠️ Skipping invalid chat response, cuz tools_request is valid: {tools_request}')
                         return
             else:
@@ -362,21 +364,29 @@ class ProxyReqRspSaveToFile:
         content_request = str(content_request_dict.get('messages', [{}])[-2:])
         action_type = "completions"
         if request_type == RequestType.chat:
-            if openai_intent == "conversation-agent":
+            if openai_intent == "conversation-agent" or x_initiator == "agent": # vscode / jetbrains
                 action_type = "agent"
-            elif openai_intent == "conversation-edits":
+            elif x_interaction_type == "git-commit": # jetbrains
+                action_type = "commit-message"
+            elif openai_intent == "conversation-edits" or x_interaction_type == "conversation-edit-panel": # vscode / jetbrains
                 action_type = "edits"
             elif openai_intent == "conversation-panel":
-                if "Write an explanation for the active selection as paragraphs of text" in content_request:
+                if "Write an explanation for the" in content_request: # vscode / jetbrains
                     action_type = "explain"
+                elif "Fix the provided errors and problems" in content_request: # jetbrains
+                    action_type = "fix"
+                elif "Write documentation for the selected code" in content_request: # jetbrains
+                    action_type = "docs"
+                elif "Write a set of unit tests for the code above" in content_request: # jetbrains
+                    action_type = "tests"
                 else:
                     action_type = "chat-panel"
             elif openai_intent == "conversation-inline":
-                if "Please find a fix for my code so that the result is without any errors" in content_request:
+                if "Please find a fix for my code so that the result is without any errors" in content_request: # vscode
                     action_type = "fix"
-                elif "Please, given sum, generate docstring only" in content_request:
+                elif "Please, given sum, generate docstring only" in content_request: # vscode
                     action_type = "docs"
-                elif "Please, generate tests" in content_request or "Generate tests accordingly" in content_request:
+                elif "Please, generate tests" in content_request or "Generate tests accordingly" in content_request: # vscode
                     action_type = "tests"
                 elif "I have the following code open in the editor" in content_request:
                     action_type = "code-review"
@@ -389,7 +399,7 @@ class ProxyReqRspSaveToFile:
                     action_type = x_onbehalf_extension_id.split(".")[1].split("/")[0]
                 elif "<currentChange>" in content_request:
                     action_type = "code-review"
-                elif "<user-commits>" in content_request:
+                elif "<user-commits>" in content_request: # vscode
                     action_type = "commit-message"
                 else:
                     action_type = "other"
