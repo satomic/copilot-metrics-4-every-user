@@ -1,5 +1,7 @@
 # Copilot Metrics for Every User
 
+English | [中文](README_CN.md)
+
 > ⚠️**Disclaimer**: This project is open sourced to solve problems that are critical to some users, and the functions provided may not be natively provided by GitHub Copilot. Therefore the contents,  opinions and views expressed in this project are solely mine do not necessarly refect the views of my employer, These are my personal notes based on myunderstanding of the code and trial deployments to GitHub Copilot. If anything is wrong with this article, please let me know through the [issues](https://github.com/satomic/copilot-proxy-insight-of-every-user/issues/new). l appreciate your help in correcting my understanding.
 
 > ⚠️**Risk Warning**: This project provides metrics on individual dimensions that Copilot's original metrics do not have, which may cause potential developer stress and mental pressure. Please use it with caution **ONLY for research purposes**, do not use it for performance evaluation or other purposes that may cause harm to developers.
@@ -17,6 +19,7 @@
 | 1.6          |    Different event types have been added to logging and metrics, including `nes`, `agent`, `edits`, `chat-inline`, `chat-panel`.                                                                                                                                                                                                             | 20250224  |
 | 1.7          |    1. Added model tracking in metrics - now records which AI models are used within each editor version for more detailed analytics.<br>2. Visualization with Grafana & Elasticsearch.<br>3. Deploy Guides                                                                                                                                                                                         | 20250312  |
 | 1.8          |   1. Add support for segmentation of inline chat event types: `fix/explain/docs/tests`. Added tracking for the new metrics and implemented corresponding log updates.<br>2. [Copilot MCP](https://github.com/VikashLoomba/copilot-mcp) compatible metrics   | 20250314  |
+| 1.9          |   1. Added support for telemetry data collection and visualization with lines accepted/shown data   | 20250908  |
 
 
 ## Table of contents
@@ -69,12 +72,13 @@ But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copi
 - Whitelisting of allowed users, supports basic authentication
 - Support for multiple IDEs, including JetBrains and VSCode
 - Visualization of the metrics for every user, model, chat types, and extensions with Grafana & Elasticsearch
+  ![telemetry](image/telemetry.png)
   ![grafana](image/grafana.png)
   ![grafana](image/grafana2.png)
   ![grafana](image/grafana3.png)
 
 ## Online Demo Environment
-- link: [copilot-metrics-for-everyuser](https://softrin.com/d/cefl3gdj7m3uoa/metrics-for-everyuser?orgId=1&from=2025-03-07T11:50:58.053Z&to=2025-03-18T06:41:38.053Z&timezone=browser&var-username=$__all&var-editor=$__all&var-model_completions=$__all&var-model_chat=$__all&var-model_extension=$__all&var-language=$__all&var-chat_type=$__all&var-extension=$__all)
+- link: [copilot-metrics-for-everyuser](https://softrin.com/d/cefl3gdj7m3uoa/metrics-for-everyuser?orgId=1&from=2025-03-08T23:23:59.022Z&to=2025-09-08T11:31:56.784Z&timezone=browser&var-username=$__all&var-editor=$__all&var-model_completions=$__all&var-model_chat=$__all&var-model_extension=$__all&var-language=$__all&var-chat_type=$__all&var-extension=$__all)
 - username：`demouser`
 - password：`demouser`
 

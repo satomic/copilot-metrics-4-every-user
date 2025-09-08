@@ -40,6 +40,7 @@ class Indexes:
     index_completions = os.getenv('INDEX_COMPLETIONS', 'copilot_completions')
     index_chat = os.getenv('INDEX_CHAT', 'copilot_chat')
     index_extension = os.getenv('INDEX_EXTENSION', 'copilot_extension')
+    index_telemetry = os.getenv('INDEX_TELEMETRY', 'copilot_telemetry')
 
 
 def generate_unique_hash(data, key_properties=[]):
@@ -62,12 +63,14 @@ class DataSplitter:
         total_chat_turns = self.data.get('total_chat_turns', 0)
         total_completions_count = self.data.get('total_completions_count', 0)
         total_extension_count = self.data.get('total_extension_count', 0)
-        
+        total_telemetry_events = self.data.get('total_telemetry_events', 0)
+
         total_data = {
             'day': day,
             'total_chat_turns': self.correction_for_0 if total_chat_turns == 0 else total_chat_turns,
             'total_completions_count': self.correction_for_0 if total_completions_count == 0 else total_completions_count,
-            'total_extension_count': self.correction_for_0 if total_extension_count == 0 else total_extension_count
+            'total_extension_count': self.correction_for_0 if total_extension_count == 0 else total_extension_count,
+            'total_telemetry_events': self.correction_for_0 if total_telemetry_events == 0 else total_telemetry_events
         }
         
         # 添加额外属性
@@ -189,6 +192,43 @@ class DataSplitter:
         
         return extension_list
 
+    def get_telemetry_list(self):
+        telemetry_list = []
+        logger.info(f"Generating telemetry list from data")
+        
+        day = self.data.get('day')
+        line_statistics = self.data.get('line_statistics', {})
+        
+        for username, user_data in line_statistics.items():
+            for editor_version, editor_data in user_data.items():
+                for model_name, model_data in editor_data.items():
+                    for language, stats in model_data.items():
+                        shown_lines = stats.get('shown_lines', 0)
+                        accepted_lines = stats.get('accepted_lines', 0)
+                        
+                        telemetry_entry = {
+                            'day': day,
+                            'username': username,
+                            'editor': editor_version,
+                            'model': model_name,
+                            'language': language,
+                            'shown_lines': shown_lines,
+                            'accepted_lines': accepted_lines
+                        }
+                        
+                        # 添加额外属性
+                        telemetry_entry.update(self.additional_properties)
+                        
+                        # 生成唯一哈希
+                        telemetry_entry['unique_hash'] = generate_unique_hash(
+                            telemetry_entry,
+                            key_properties=['day', 'username', 'editor', 'model', 'language']
+                        )
+                        
+                        telemetry_list.append(telemetry_entry)
+        
+        return telemetry_list
+
 
 
 class ElasticsearchManager:
@@ -234,6 +274,7 @@ def main():
     # Define the path to the metrics file
     today_date = datetime.now().strftime('%Y-%m-%d')
     metrics_file_path = os.path.join("auditlogs", 'metrics', f'copilot-usage_{today_date}.json')
+    telemetry_file_path = os.path.join("auditlogs", 'telemetry', f'copilot-telemetry_{today_date}.json')
 
     # Read the metrics file
     try:
@@ -247,6 +288,17 @@ def main():
         logger.error(f"Error decoding JSON from file: {metrics_file_path}")
         return
 
+    # Read the telemetry file
+    telemetry_data = None
+    try:
+        with open(telemetry_file_path, 'r') as file:
+            telemetry_data = json.load(file)
+            logger.info(f"Successfully read telemetry file: {telemetry_file_path}")
+    except FileNotFoundError:
+        logger.warning(f"Telemetry file not found: {telemetry_file_path}")
+    except json.JSONDecodeError:
+        logger.error(f"Error decoding JSON from telemetry file: {telemetry_file_path}")
+
     es_manager = ElasticsearchManager()
 
     # Initialize DataSplitter and process the data
@@ -254,6 +306,12 @@ def main():
     completions_list = data_splitter.get_completions_list()
     chat_list = data_splitter.get_chat_list()
     extension_list = data_splitter.get_extension_list()
+
+    # Process telemetry data if available
+    telemetry_list = []
+    if telemetry_data:
+        telemetry_splitter = DataSplitter(telemetry_data)
+        telemetry_list = telemetry_splitter.get_telemetry_list()
 
     # Write to ES
     for data in completions_list:
@@ -264,6 +322,9 @@ def main():
 
     for data in extension_list:
         es_manager.write_to_es(Indexes.index_extension, data)
+    
+    for data in telemetry_list:
+        es_manager.write_to_es(Indexes.index_telemetry, data)
     
     logger.info(f"Data processing completed successfully.")
 

@@ -9,6 +9,7 @@ data_source_names = [
     "elasticsearch-completions",
     "elasticsearch-chat",
     "elasticsearch-extension",
+    "elasticsearch-telemetry",
 ]
 
 grafana_folder = 'grafana'
