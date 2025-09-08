@@ -312,6 +312,8 @@ class ProxyReqRspSaveToFile:
         timestamp = datetime.utcnow().isoformat()
 
         action_type = "unknown"
+        editor_version = "unknown"
+
         if request_type != RequestType.telemetry:
             editor_version = headers_request.get('editor-version', '-').replace('/', '-')
             x_initiator = headers_request.get('x-initiator', None)
@@ -437,7 +439,7 @@ class ProxyReqRspSaveToFile:
                         base_data = obj.get("data", {}).get("baseData", {})
                         properties = base_data.get("properties", {})
 
-                        editor, editor_version = properties.get("editor_version", "unknown/unknown").split("/") if "/" in properties.get("editor_version", "unknown/unknown") else ["unknown", "unknown"]
+                        editor_version = "-".join(properties.get("editor_version", "unknown/unknown").split("/") if "/" in properties.get("editor_version", "unknown/unknown") else ["unknown", "unknown"])
                         language = properties.get("languageId", "unknown")
                         model = properties.get("engineName", "unknown")
                         
@@ -454,7 +456,7 @@ class ProxyReqRspSaveToFile:
 
 
                         try:
-                            self.update_and_save_telemetry(username, editor, editor_version, model, language, shown_num_lines, accepted_num_lines)
+                            self.update_and_save_telemetry(username, editor_version, model, language, shown_num_lines, accepted_num_lines)
                         except Exception as e:
                             ctx.log.error(f"❌ Unable to update telemetry: {traceback.format_exc(e)}")
 
@@ -632,7 +634,7 @@ class ProxyReqRspSaveToFile:
         except Exception as e:
             ctx.log.error(f"❌ Unable to save metrics to file: {e}")
 
-    def update_and_save_telemetry(self, username, editor, editor_version, model, language, shown_num_lines, accepted_num_lines):
+    def update_and_save_telemetry(self, username, editor_version, model, language, shown_num_lines, accepted_num_lines):
         current_date = datetime.utcnow().date()
         if current_date != self.current_date:
             self.current_date = current_date
@@ -646,8 +648,8 @@ class ProxyReqRspSaveToFile:
                 with open(telemetry_file, "r", encoding='utf8') as file:
                     existing_telemetry = json.load(file)
                 total_telemetry_events = existing_telemetry.get("total_telemetry_events", 0)
-                global_shown_lines = existing_telemetry.get("global_statistics", {}).get("total_shown_lines", 0)
-                global_accepted_lines = existing_telemetry.get("global_statistics", {}).get("total_accepted_lines", 0)
+                global_shown_lines = existing_telemetry.get("total_shown_lines", 0)
+                global_accepted_lines = existing_telemetry.get("total_accepted_lines", 0)
                 line_statistics = existing_telemetry.get("line_statistics", {})
             except Exception as e:
                 ctx.log.error(f"❌ Unable to load existing telemetry: {traceback.format_exc()}")
@@ -668,39 +670,34 @@ class ProxyReqRspSaveToFile:
         global_accepted_lines += accepted_num_lines
         global_acceptance_rate = round((global_accepted_lines / global_shown_lines) * 100, 2) if global_shown_lines > 0 else 0.0
 
-        # Update line_statistics with nested structure: username -> editor -> editor_version -> model -> language
+        # Update line_statistics with nested structure: username -> editor_version -> model -> language
         if username not in line_statistics:
             line_statistics[username] = {}
-        
-        if editor not in line_statistics[username]:
-            line_statistics[username][editor] = {}
-            
-        if editor_version not in line_statistics[username][editor]:
-            line_statistics[username][editor][editor_version] = {}
-            
-        if model not in line_statistics[username][editor][editor_version]:
-            line_statistics[username][editor][editor_version][model] = {}
-            
-        if language not in line_statistics[username][editor][editor_version][model]:
-            line_statistics[username][editor][editor_version][model][language] = {
+
+        if editor_version not in line_statistics[username]:
+            line_statistics[username][editor_version] = {}
+
+        if model not in line_statistics[username][editor_version]:
+            line_statistics[username][editor_version][model] = {}
+
+        if language not in line_statistics[username][editor_version][model]:
+            line_statistics[username][editor_version][model][language] = {
                 "shown_lines": 0,
                 "accepted_lines": 0
             }
         
         # Update the nested statistics
-        line_statistics[username][editor][editor_version][model][language]["shown_lines"] += shown_num_lines
-        line_statistics[username][editor][editor_version][model][language]["accepted_lines"] += accepted_num_lines
+        line_statistics[username][editor_version][model][language]["shown_lines"] += shown_num_lines
+        line_statistics[username][editor_version][model][language]["accepted_lines"] += accepted_num_lines
 
         # Prepare telemetry summary
         telemetry_summary = {
             "day": str(self.current_date),
             "total_telemetry_events": total_telemetry_events,
-            "global_statistics": {
-                "total_shown_lines": global_shown_lines,
-                "total_accepted_lines": global_accepted_lines,
-                "global_acceptance_rate": global_acceptance_rate,
-                "total_users": len(line_statistics)
-            },
+            "total_shown_lines": global_shown_lines,
+            "total_accepted_lines": global_accepted_lines,
+            "total_acceptance_rate": global_acceptance_rate,
+            "total_users": len(line_statistics),
             "line_statistics": line_statistics
         }
 

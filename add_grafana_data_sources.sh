@@ -66,3 +66,26 @@ curl -X POST http://localhost:3000/api/datasources \
   }
 }'
 
+
+
+curl -X POST http://localhost:3000/api/datasources \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $GRAFANA_TOKEN" \
+-d '{
+  "name": "elasticsearch-telemetry",
+  "type": "elasticsearch",
+  "access": "proxy",
+  "url": "http://localhost:9200",
+  "basicAuth": false,
+  "withCredentials": false,
+  "isDefault": false,
+  "jsonData": {
+    "includeFrozen": false,
+    "index": "copilot_telemetry",
+    "logLevelField": "",
+    "logMessageField": "",
+    "maxConcurrentShardRequests": 5,
+    "timeField": "day",
+    "timeInterval": "1d"
+  }
+}'

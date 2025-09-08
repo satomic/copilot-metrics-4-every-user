@@ -122,7 +122,7 @@ auditlogs/
 
 tmp/
 
-*try*
+*tryit*
 
 docker_run.sh
 
