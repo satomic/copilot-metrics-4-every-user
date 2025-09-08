@@ -17,7 +17,7 @@ import random
 import traceback
 import re
 
-version_date = "20250619"
+version_date = "20250908"
 
 def generate_password(username: str, seed: int) -> str:
     random.seed(seed)
@@ -78,11 +78,13 @@ class RequestTypeKeywords:
     completions = r"v1/engines/(.*)/completions" # copilot-codex / gpt-4o-copilot
     chat = r"chat/completions"
     extension = r"agents/(.*)"
+    telemetry = r"/telemetry"
 
 class RequestType:
     completions = "completions"
     chat = "chat"
     extension = "extension"
+    telemetry = "telemetry"
 
 def get_request_type(flow: http.HTTPFlow):
     # ctx.log.warn(f"💗 flow.request.url: {flow.request.url}")
@@ -98,6 +100,9 @@ def get_request_type(flow: http.HTTPFlow):
             para_in_url = match.group(1).replace("?", "").replace("chat", "")
         elif RequestTypeKeywords.chat in flow.request.url:
             request_type = RequestType.chat
+            para_in_url = None
+        elif RequestTypeKeywords.telemetry in flow.request.url:
+            request_type = RequestType.telemetry
             para_in_url = None
         else:
             request_type = None
@@ -119,6 +124,7 @@ class ContentHandler:
 
     @staticmethod
     def to_dicts(content):
+        convert_status = True
         content = content.replace('false', 'False').replace('true', 'True').replace('null', 'None')
 
         # for response content
@@ -134,9 +140,10 @@ class ContentHandler:
             # for request content
             ret = eval(content) if ContentHandler.is_convertible_to_dict(content) else content
         if isinstance(ret, str):
-            ctx.log.error(f"❌ Content convert failed: {ret}")
-        return ret
-    
+            convert_status = False
+            # ctx.log.error(f"❌ Content convert failed: {ret}")
+        return ret, convert_status
+
     @staticmethod
     def pretty(content):
         print(json.dumps(ContentHandler.to_dicts(content=content), indent=4, ensure_ascii=False))
@@ -150,6 +157,7 @@ class ProxyReqRspSaveToFile:
         self.usernames_file_path = os.path.join(log_file_path, "proxy_auth_cache.json")
         self.usage_file_path = os.path.join(log_file_path, "usage")
         self.metrics_file_path = os.path.join(log_file_path, "metrics")
+        self.telemetry_file_path = os.path.join(log_file_path, "telemetry")
         self.current_date = datetime.utcnow().date()
         self.load_usernames()
         ctx.log.info("✅ Initialized ProxyReqRspSaveToJson plugin")
@@ -280,9 +288,6 @@ class ProxyReqRspSaveToFile:
         # if "telemetry" not in flow.request.url:
         #     print("completions=================================: ", flow.request.url)
 
-        self.current_date = datetime.utcnow().date()
-        self.metrics_file = os.path.join(self.metrics_file_path, f'copilot-usage_{self.current_date}.json')
-
         # Determine type, discard if not one of the two types
         request_type, para_in_url = get_request_type(flow)
         if not request_type:
@@ -293,160 +298,206 @@ class ProxyReqRspSaveToFile:
 
         headers_request = dict(flow.request.headers)
         headers_response = dict(flow.response.headers)
-        content_request = flow.request.content.decode('utf-8').replace('\"', '"')
-        content_request_dict = ContentHandler.to_dicts(content_request)
+        content_request = flow.request.content.decode('utf-8').replace('\"', '"') # .replace('"{', '{').replace('}"', '}').replace('\\', '').replace('"[', '[').replace(']"', ']').strip()
+        content_request_dict, convert_status = ContentHandler.to_dicts(content_request)
         content_response = flow.response.content.decode('utf-8').replace('\"', '"')
-        content_response_list = ContentHandler.to_dicts(content_response)
+        content_response_list, _ = ContentHandler.to_dicts(content_response)
 
-        editor_version = headers_request.get('editor-version', '-').replace('/', '-')
-        x_initiator = headers_request.get('x-initiator', None)
-        x_interaction_type = headers_request.get('x-interaction-type', None)
-        model = content_request_dict.get('model', 'unknown') if request_type != RequestType.completions else para_in_url
-        extension = para_in_url if request_type == RequestType.extension else None
-
-        if conditional_judgment:
-            # VSCode Conditional judgment
-            if 'vscode' in editor_version.lower():
-                # Determine whether it is a normal completion
-                if request_type == RequestType.completions:
-                    # If the completion response does not contain any text, it will be invalid.
-                    has_text_in_contents_response = any([content.get('choices', [{}])[0].get('text') if isinstance(content, dict) else False for content in content_response_list])
-                    if not has_text_in_contents_response:
-                        ctx.log.warn(f'⚠️ Skipping invalid completion response, cuz there is no text in contents_response')
-                        return
-                    # If the response_content_length field exists, it is not the normal completion behavior. This is based on experience gained from observing multiple jsons, not based on the design document.
-                    # content_length_response = headers_response.get('content-length')
-                    # if content_length_response is not None:
-                    #     ctx.log.info(f'⚠️ Skipping invalid completion response, cuz content_length_response is valid: {content_length_response}')
-                    #     return
-                # Determine whether it is a normal chat
-                else:
-                    # If the stop field exists, it is not the normal chat behavior. This is based on experience gained from observing multiple jsons, not based on the design document.
-                    content_stop_request = content_request_dict.get('stop')
-                    if content_stop_request is not None:
-                        ctx.log.warn(f'⚠️ Skipping invalid chat response, cuz content_stop_request is valid: {content_stop_request}')
-                        return
-
-            # JetBrains Conditional judgment
-            elif 'jetbrains' in editor_version.lower():
-                if request_type == RequestType.completions:
-                    has_text_in_contents_response = any([content.get('choices', [{}])[0].get('text') if isinstance(content, dict) else False for content in content_response_list])
-                    if not has_text_in_contents_response:
-                        ctx.log.warn(f'⚠️ Skipping invalid completion response, cuz there is no text in contents_response')
-                        return
-                else:
-                    last_role_in_messages = content_request_dict.get('messages', [{}])[-1].get('role')
-                    if last_role_in_messages != 'user':
-                        ctx.log.warn(f'⚠️ Skipping invalid chat response, cuz last_role_in_messages is not type of `user`: {last_role_in_messages}')
-                        return
-                    tools_request = content_request_dict.get('tools')
-                    if tools_request is not None and x_initiator == 'agent':
-                        ctx.log.warn(f'⚠️ Skipping invalid chat response, cuz tools_request is valid: {tools_request}')
-                        return
-            else:
-                ctx.log.info(f"⚠️ Unknown editor: {editor_version}")
-
+        client_connect_address = flow.client_conn.address[0]
+        username, password = self.usernames.get(client_connect_address, ('anonymous', ''))
 
         # Add milliseconds to the timestamp
         timeconsumed = round((flow.response.timestamp_end - flow.request.timestamp_start) * 1000, 2)
         timeconsumed_str = f"{timeconsumed}ms"  
- 
-        # Concatenate string content
         timestamp = datetime.utcnow().isoformat()
-        language = content_request_dict.get('extra', {}).get('language', 'unknown')
-        openai_intent = headers_request.get('openai-intent', 'unknown')
-        x_onbehalf_extension_id = headers_request.get('x-onbehalf-extension-id', None)
-        vscode_machineid = headers_request.get('vscode-machineid', '-')[0:10]
-        client_connect_address = flow.client_conn.address[0]
-        username, password = self.usernames.get(client_connect_address, ('anonymous', ''))
 
-        # what type of action is this? chat or completions? or NES, Agent, Edit? 
-        content_request = str(content_request_dict.get('messages', [{}])[-2:])
-        action_type = "completions"
-        if request_type == RequestType.chat:
-            if openai_intent == "conversation-agent" or x_initiator == "agent": # vscode / jetbrains
-                action_type = "agent"
-            elif x_interaction_type == "git-commit": # jetbrains
-                action_type = "commit-message"
-            elif openai_intent == "conversation-edits" or x_interaction_type == "conversation-edit-panel": # vscode / jetbrains
-                action_type = "edits"
-            elif openai_intent == "conversation-panel":
-                if "Write an explanation for the" in content_request: # vscode / jetbrains
-                    action_type = "explain"
-                elif "Fix the provided errors and problems" in content_request: # jetbrains
-                    action_type = "fix"
-                elif "Write documentation for the selected code" in content_request: # jetbrains
-                    action_type = "docs"
-                elif "Write a set of unit tests for the code above" in content_request: # jetbrains
-                    action_type = "tests"
+        action_type = "unknown"
+        if request_type != RequestType.telemetry:
+            editor_version = headers_request.get('editor-version', '-').replace('/', '-')
+            x_initiator = headers_request.get('x-initiator', None)
+            x_interaction_type = headers_request.get('x-interaction-type', None)
+            model = content_request_dict.get('model', 'unknown') if request_type != RequestType.completions else para_in_url
+            extension = para_in_url if request_type == RequestType.extension else None
+
+            if conditional_judgment:
+                # VSCode Conditional judgment
+                if 'vscode' in editor_version.lower():
+                    # Determine whether it is a normal completion
+                    if request_type == RequestType.completions:
+                        # If the completion response does not contain any text, it will be invalid.
+                        has_text_in_contents_response = any([content.get('choices', [{}])[0].get('text') if isinstance(content, dict) else False for content in content_response_list])
+                        if not has_text_in_contents_response:
+                            ctx.log.warn(f'⚠️ Skipping invalid completion response, cuz there is no text in contents_response')
+                            return
+                        # If the response_content_length field exists, it is not the normal completion behavior. This is based on experience gained from observing multiple jsons, not based on the design document.
+                        # content_length_response = headers_response.get('content-length')
+                        # if content_length_response is not None:
+                        #     ctx.log.info(f'⚠️ Skipping invalid completion response, cuz content_length_response is valid: {content_length_response}')
+                        #     return
+                    # Determine whether it is a normal chat
+                    else:
+                        # If the stop field exists, it is not the normal chat behavior. This is based on experience gained from observing multiple jsons, not based on the design document.
+                        content_stop_request = content_request_dict.get('stop')
+                        if content_stop_request is not None:
+                            ctx.log.warn(f'⚠️ Skipping invalid chat response, cuz content_stop_request is valid: {content_stop_request}')
+                            return
+
+                # JetBrains Conditional judgment
+                elif 'jetbrains' in editor_version.lower():
+                    if request_type == RequestType.completions:
+                        has_text_in_contents_response = any([content.get('choices', [{}])[0].get('text') if isinstance(content, dict) else False for content in content_response_list])
+                        if not has_text_in_contents_response:
+                            ctx.log.warn(f'⚠️ Skipping invalid completion response, cuz there is no text in contents_response')
+                            return
+                    else:
+                        last_role_in_messages = content_request_dict.get('messages', [{}])[-1].get('role')
+                        if last_role_in_messages != 'user':
+                            ctx.log.warn(f'⚠️ Skipping invalid chat response, cuz last_role_in_messages is not type of `user`: {last_role_in_messages}')
+                            return
+                        tools_request = content_request_dict.get('tools')
+                        if tools_request is not None and x_initiator == 'agent':
+                            ctx.log.warn(f'⚠️ Skipping invalid chat response, cuz tools_request is valid: {tools_request}')
+                            return
                 else:
-                    action_type = "chat-panel"
-            elif openai_intent == "conversation-inline":
-                if "Please find a fix for my code so that the result is without any errors" in content_request: # vscode
-                    action_type = "fix"
-                elif "Please, given sum, generate docstring only" in content_request: # vscode
-                    action_type = "docs"
-                elif "Please, generate tests" in content_request or "Generate tests accordingly" in content_request: # vscode
-                    action_type = "tests"
-                elif "I have the following code open in the editor" in content_request:
-                    action_type = "code-review"
-                else:
-                    action_type = "chat-inline"
-            elif "nes" in model: # "copilot-nes-v", "copilot-nes-xtab"
-                action_type = "nes"
-            elif openai_intent == "conversation-other":
-                if x_onbehalf_extension_id is not None:
-                    action_type = x_onbehalf_extension_id.split(".")[1].split("/")[0]
-                elif "<currentChange>" in content_request:
-                    action_type = "code-review"
-                elif "<user-commits>" in content_request: # vscode
+                    ctx.log.info(f"⚠️ Unknown editor: {editor_version}")
+
+    
+            # Concatenate string content
+            language = content_request_dict.get('extra', {}).get('language', 'unknown')
+            openai_intent = headers_request.get('openai-intent', 'unknown')
+            x_onbehalf_extension_id = headers_request.get('x-onbehalf-extension-id', None)
+            vscode_machineid = headers_request.get('vscode-machineid', '-')[0:10]
+            
+
+            # what type of action is this? chat or completions? or NES, Agent, Edit? 
+            content_request = str(content_request_dict.get('messages', [{}])[-2:])
+            action_type = "completions"
+            if request_type == RequestType.chat:
+                if openai_intent == "conversation-agent" or x_initiator == "agent": # vscode / jetbrains
+                    action_type = "agent"
+                elif x_interaction_type == "git-commit": # jetbrains
                     action_type = "commit-message"
+                elif openai_intent == "conversation-edits" or x_interaction_type == "conversation-edit-panel": # vscode / jetbrains
+                    action_type = "edits"
+                elif openai_intent == "conversation-panel":
+                    if "Write an explanation for the" in content_request: # vscode / jetbrains
+                        action_type = "explain"
+                    elif "Fix the provided errors and problems" in content_request: # jetbrains
+                        action_type = "fix"
+                    elif "Write documentation for the selected code" in content_request: # jetbrains
+                        action_type = "docs"
+                    elif "Write a set of unit tests for the code above" in content_request: # jetbrains
+                        action_type = "tests"
+                    else:
+                        action_type = "chat-panel"
+                elif openai_intent == "conversation-inline":
+                    if "Please find a fix for my code so that the result is without any errors" in content_request: # vscode
+                        action_type = "fix"
+                    elif "Please, given sum, generate docstring only" in content_request: # vscode
+                        action_type = "docs"
+                    elif "Please, generate tests" in content_request or "Generate tests accordingly" in content_request: # vscode
+                        action_type = "tests"
+                    elif "I have the following code open in the editor" in content_request:
+                        action_type = "code-review"
+                    else:
+                        action_type = "chat-inline"
+                elif "nes" in model: # "copilot-nes-v", "copilot-nes-xtab"
+                    action_type = "nes"
+                elif openai_intent == "conversation-other":
+                    if x_onbehalf_extension_id is not None:
+                        action_type = x_onbehalf_extension_id.split(".")[1].split("/")[0]
+                    elif "<currentChange>" in content_request:
+                        action_type = "code-review"
+                    elif "<user-commits>" in content_request: # vscode
+                        action_type = "commit-message"
+                    else:
+                        action_type = "other"
                 else:
                     action_type = "other"
+            elif request_type == RequestType.extension:
+                action_type = "extension"
             else:
-                action_type = "other"
-        elif request_type == RequestType.extension:
-            action_type = "extension"
+                action_type = action_type
+
+            try:
+                self.update_and_save_metrics(request_type, username, editor_version, language, action_type, model, extension)
+            except Exception as e:
+                ctx.log.error(f"❌ Unable to update metrics: {traceback.format_exc(e)}")
+
         else:
-            action_type = action_type
+            if convert_status:
+                
+                vscode_machineid = "-"
+
+                if isinstance(content_request_dict, list):
+                    action_type = "telemetry"
+
+                    for obj in content_request_dict:
+                        
+                        base_data = obj.get("data", {}).get("baseData", {})
+                        properties = base_data.get("properties", {})
+
+                        editor, editor_version = properties.get("editor_version", "unknown/unknown").split("/") if "/" in properties.get("editor_version", "unknown/unknown") else ["unknown", "unknown"]
+                        language = properties.get("languageId", "unknown")
+                        model = properties.get("engineName", "unknown")
+                        
+                        base_data_name = base_data.get("name")
+                        num_lines = base_data.get("measurements", {}).get("numLines", 0)
+                        if "hown" in base_data_name:
+                            shown_num_lines = num_lines
+                            accepted_num_lines = 0
+                        elif "accepted" in base_data_name or "message" in base_data_name:
+                            shown_num_lines = 0
+                            accepted_num_lines = num_lines
+                        else:
+                            continue
 
 
-        log_entry = {
-            'proxy-authorization': f'{username}:{password}',
-            "timestamp": timestamp,
-            "proxy-time-consumed": timeconsumed_str,
-            'request': {
-                'url': flow.request.url,
-                'method': flow.request.method,
-                'headers': headers_request,
-                'content': content_request_dict,
-            },
-            'response': {
-                'status_code': flow.response.status_code,
-                'headers': dict(flow.response.headers),
-                'content': content_response_list,
+                        try:
+                            self.update_and_save_telemetry(username, editor, editor_version, model, language, shown_num_lines, accepted_num_lines)
+                        except Exception as e:
+                            ctx.log.error(f"❌ Unable to update telemetry: {traceback.format_exc(e)}")
+
+
+        if convert_status:
+
+            log_entry = {
+                'proxy-authorization': f'{username}:{password}',
+                "timestamp": timestamp,
+                "proxy-time-consumed": timeconsumed_str,
+                'request': {
+                    'url': flow.request.url,
+                    'method': flow.request.method,
+                    'headers': headers_request,
+                    'content': content_request_dict,
+                },
+                'response': {
+                    'status_code': flow.response.status_code,
+                    'headers': dict(flow.response.headers),
+                    'content': content_response_list,
+                }
             }
-        }
 
-        # Create directory if it doesn't exist
-        directory_path = os.path.join(self.usage_file_path, username, action_type)
-        os.makedirs(directory_path, exist_ok=True)
-
-        log_file_name = f'{directory_path}/{timestamp}_{vscode_machineid}_{client_connect_address}_{editor_version}_{action_type}.json'.replace(':', '-')
         
-        try:
-            with open(log_file_name, "w", encoding='utf8') as log_file:
-                log_file.write(json.dumps(log_entry, indent=4, ensure_ascii=False))
-            ctx.log.info(f"😄 Log saved {log_file_name}")
-            self.update_and_save_metrics(request_type, username, editor_version, language, action_type, model, extension)
-        except Exception as e:
-            ctx.log.error(f"❌ Unable to save log to file: {traceback.format_exc(e)}")
-            return
+            # Create directory if it doesn't exist
+            directory_path = os.path.join(self.usage_file_path, username, action_type)
+            os.makedirs(directory_path, exist_ok=True)
+
+            log_file_name = f'{directory_path}/{timestamp}_{vscode_machineid}_{client_connect_address}_{editor_version}_{action_type}.json'.replace(':', '-')
+            
+            try:
+                with open(log_file_name, "w", encoding='utf8') as log_file:
+                    log_file.write(json.dumps(log_entry, indent=4, ensure_ascii=False))
+                ctx.log.info(f"😄 Log saved {log_file_name}")
+            except Exception as e:
+                ctx.log.error(f"❌ Unable to save log to file: {traceback.format_exc(e)}")
+                return
 
     def update_and_save_metrics(self, request_type, username, editor_version, language, action_type, model, extension):
         current_date = datetime.utcnow().date()
         if current_date != self.current_date:
             self.current_date = current_date
+        self.metrics_file = os.path.join(self.metrics_file_path, f'copilot-usage_{self.current_date}.json')
 
         # Load existing metrics if the file exists
         if os.path.exists(self.metrics_file):
@@ -555,7 +606,8 @@ class ProxyReqRspSaveToFile:
             aggregated_metrics[username]["extension"][extension]["count"] += 1
             aggregated_metrics[username]["extension_count"] += 1
             total_extension_count += 1
-
+        elif request_type == RequestType.telemetry:
+            ctx.log.info(f"💤 Skipping telemetry data for metrics aggregation.")
         else:
             ctx.log.error(f"❌ Unknown request type: {request_type}")
             
@@ -579,6 +631,89 @@ class ProxyReqRspSaveToFile:
             ctx.log.info(f"😆 Metrics saved {self.metrics_file}")
         except Exception as e:
             ctx.log.error(f"❌ Unable to save metrics to file: {e}")
+
+    def update_and_save_telemetry(self, username, editor, editor_version, model, language, shown_num_lines, accepted_num_lines):
+        current_date = datetime.utcnow().date()
+        if current_date != self.current_date:
+            self.current_date = current_date
+
+        # Define telemetry file path
+        telemetry_file = os.path.join(self.telemetry_file_path, f'copilot-telemetry_{self.current_date}.json')
+
+        # Load existing telemetry data if the file exists
+        if os.path.exists(telemetry_file):
+            try:
+                with open(telemetry_file, "r", encoding='utf8') as file:
+                    existing_telemetry = json.load(file)
+                total_telemetry_events = existing_telemetry.get("total_telemetry_events", 0)
+                global_shown_lines = existing_telemetry.get("global_statistics", {}).get("total_shown_lines", 0)
+                global_accepted_lines = existing_telemetry.get("global_statistics", {}).get("total_accepted_lines", 0)
+                line_statistics = existing_telemetry.get("line_statistics", {})
+            except Exception as e:
+                ctx.log.error(f"❌ Unable to load existing telemetry: {traceback.format_exc()}")
+                total_telemetry_events = 0
+                line_statistics = {}
+        else:
+            total_telemetry_events = 0
+            global_shown_lines = 0
+            global_accepted_lines = 0
+            line_statistics = {}
+
+
+        # Update telemetry counters
+        total_telemetry_events += 1
+
+        # Calculate global statistics
+        global_shown_lines += shown_num_lines
+        global_accepted_lines += accepted_num_lines
+        global_acceptance_rate = round((global_accepted_lines / global_shown_lines) * 100, 2) if global_shown_lines > 0 else 0.0
+
+        # Update line_statistics with nested structure: username -> editor -> editor_version -> model -> language
+        if username not in line_statistics:
+            line_statistics[username] = {}
+        
+        if editor not in line_statistics[username]:
+            line_statistics[username][editor] = {}
+            
+        if editor_version not in line_statistics[username][editor]:
+            line_statistics[username][editor][editor_version] = {}
+            
+        if model not in line_statistics[username][editor][editor_version]:
+            line_statistics[username][editor][editor_version][model] = {}
+            
+        if language not in line_statistics[username][editor][editor_version][model]:
+            line_statistics[username][editor][editor_version][model][language] = {
+                "shown_lines": 0,
+                "accepted_lines": 0
+            }
+        
+        # Update the nested statistics
+        line_statistics[username][editor][editor_version][model][language]["shown_lines"] += shown_num_lines
+        line_statistics[username][editor][editor_version][model][language]["accepted_lines"] += accepted_num_lines
+
+        # Prepare telemetry summary
+        telemetry_summary = {
+            "day": str(self.current_date),
+            "total_telemetry_events": total_telemetry_events,
+            "global_statistics": {
+                "total_shown_lines": global_shown_lines,
+                "total_accepted_lines": global_accepted_lines,
+                "global_acceptance_rate": global_acceptance_rate,
+                "total_users": len(line_statistics)
+            },
+            "line_statistics": line_statistics
+        }
+
+        # Create the telemetry file directory if it does not exist
+        os.makedirs(self.telemetry_file_path, exist_ok=True)
+
+        # Save telemetry data
+        try:
+            with open(telemetry_file, "w", encoding='utf8') as file:
+                file.write(json.dumps(telemetry_summary, indent=4, ensure_ascii=False))
+            ctx.log.info(f"📊 Telemetry data saved {telemetry_file}")
+        except Exception as e:
+            ctx.log.error(f"❌ Unable to save telemetry data to file: {e}")
 
 addons = [
     ProxyReqRspSaveToFile()
