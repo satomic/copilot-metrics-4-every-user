@@ -729,3 +729,9 @@ Logging is supported for different types of chat, including `nes`, `agent`, `edi
     }
 }
 ````
+
+---
+
+## Special Note for JetBrains IDEs
+
+⚠️ **Important Configuration for JetBrains IDEs**: If you are using JetBrains series IDEs (IntelliJ IDEA, PyCharm, WebStorm, etc.) and want to implement data statistics through this proxy, you **MUST** configure the network mode to **Native** in the IDE settings. Without this configuration, the proxy will not be able to capture and record the Copilot requests from JetBrains IDEs, and the data statistics will not work properly.

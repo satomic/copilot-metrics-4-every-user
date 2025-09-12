@@ -713,3 +713,9 @@ satomic/copilot-metrics-4-everyuser
     }
 }
 ````
+
+---
+
+## JetBrains IDE 特别说明
+
+⚠️ **JetBrains IDE 重要配置**: 如果您使用的是 JetBrains 系列 IDE（IntelliJ IDEA、PyCharm、WebStorm 等），并希望通过此代理实现数据统计，您**必须**在 IDE 设置中将网络模式配置为 **Native**。如果没有进行此配置，代理将无法捕获和记录来自 JetBrains IDE 的 Copilot 请求，数据统计功能将无法正常工作。
