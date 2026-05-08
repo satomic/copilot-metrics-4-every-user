@@ -4,7 +4,7 @@ English | [中文](README_CN.md)
 
 > ⚠️**Disclaimer**: This project is open sourced to solve problems that are critical to some users, and the functions provided may not be natively provided by GitHub Copilot. Therefore the contents,  opinions and views expressed in this project are solely mine do not necessarly refect the views of my employer, These are my personal notes based on myunderstanding of the code and trial deployments to GitHub Copilot. If anything is wrong with this article, please let me know through the [issues](https://github.com/satomic/copilot-proxy-insight-of-every-user/issues/new). l appreciate your help in correcting my understanding.
 
-> ⚠️**Risk Warning**: This project provides metrics on individual dimensions that Copilot's original metrics do not have, which may cause potential developer stress and mental pressure. Please use it with caution **ONLY for research purposes**, do not use it for performance evaluation or other purposes that may cause harm to developers.
+> ⚠️**Risk Warning**: This project can capture proxy-level, per-user Copilot request and response details beyond the official aggregated reports. This may cause potential developer stress and mental pressure. Please use it with caution **ONLY for research purposes**, do not use it for performance evaluation or other purposes that may cause harm to developers.
 
 
 | **Version**​ | **Update Notes**​                                                                                                                                                                                                                                                                                                                             | **Date**​ |
@@ -57,13 +57,13 @@ English | [中文](README_CN.md)
 # Introduction
 
 ## Why Built This
-Because according to the official Copilot document [REST API endpoints for Copilot metrics - GitHub Enterprise Cloud Docs](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-metrics?apiVersion=2022-11-28#get-copilot-metrics-for-a-team): 
+GitHub's older [Copilot metrics REST API](https://docs.github.com/en/rest/copilot/copilot-metrics?apiVersion=2022-11-28) had aggregation limits such as:
 
 > This endpoint will only return results for a given day if the team had five or more members with active Copilot licenses on that day, as evaluated at the end of that day.
 
-So, if you want to view the usage of Copilot, the smallest granularity is Teams, and it is a Team with at least 5 members. if this is OK for you, just follow [Copilot Usage Advanced Dashboard](https://github.com/satomic/copilot-usage-advanced-dashboard) to visualize it.
+That older API was closed down on April 2, 2026. GitHub's current [Copilot usage metrics REST API](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10) provides official enterprise, organization, and user-level usage reports and should be used when official aggregated reports are enough.
 
-But, if you are an admin of your Enterprise/Organizations/Teams with GitHub Copilot enabled, and you want to know the usage details of every users, models, Chat types, and the use of Extensions, try this project. this is why built this.
+This project is useful when you need proxy-level Copilot request/response logs or custom dimensions that are not available in the official reports, such as local proxy-auth users, detailed chat action types, extension calls, and raw request/response samples.
 
 
 ## Key Features

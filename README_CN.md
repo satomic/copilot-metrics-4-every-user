@@ -4,7 +4,7 @@
 
 > ⚠️**免责声明**: 此项目是开源的，旨在解决对某些用户至关重要的问题，所提供的功能可能不是 GitHub Copilot 原生提供的。因此，此项目中表达的内容、意见和观点纯属个人意见，不一定反映我雇主的观点。这些是我基于对代码的理解和 GitHub Copilot 试验部署的个人笔记。如果本文有任何错误，请通过 [issues](https://github.com/satomic/copilot-proxy-insight-of-every-user/issues/new) 告知我。感谢您帮助纠正我的理解。
 
-> ⚠️**风险警告**: 此项目提供了 Copilot 原始指标没有的个人维度指标，这可能会对开发者造成潜在的压力和心理负担。请谨慎使用，**仅用于研究目的**，不要用于绩效评估或其他可能对开发者造成伤害的目的。
+> ⚠️**风险警告**: 此项目可以捕获官方聚合报表之外的代理层、用户级 Copilot 请求和响应详情，这可能会对开发者造成潜在的压力和心理负担。请谨慎使用，**仅用于研究目的**，不要用于绩效评估或其他可能对开发者造成伤害的目的。
 
 | **版本**​ | **更新说明**​                                                                                                                                                                                                                                                                                                                             | **日期**​ |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
@@ -55,13 +55,13 @@
 # 介绍
 
 ## 为什么构建这个
-根据官方 Copilot 文档 [REST API endpoints for Copilot metrics - GitHub Enterprise Cloud Docs](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-metrics?apiVersion=2022-11-28#get-copilot-metrics-for-a-team)：
+旧版 [Copilot metrics REST API](https://docs.github.com/en/rest/copilot/copilot-metrics?apiVersion=2022-11-28) 曾经有这样的聚合限制：
 
 > 只有当团队在该天结束时有五个或更多活跃 Copilot 许可证成员时，此端点才会返回给定日期的结果。
 
-因此，如果您想查看 Copilot 的使用情况，最小粒度是团队，并且是至少有5个成员的团队。如果这对您来说没问题，只需按照 [Copilot Usage Advanced Dashboard](https://github.com/satomic/copilot-usage-advanced-dashboard) 来可视化它。
+该旧 API 已在 2026-04-02 关闭。GitHub 当前的 [Copilot usage metrics REST API](https://docs.github.com/en/rest/copilot/copilot-usage-metrics?apiVersion=2026-03-10) 已提供官方的企业、组织和用户级使用报表；如果官方聚合报表已经足够，应优先使用官方 API。
 
-但是，如果您是启用了 GitHub Copilot 的企业/组织/团队的管理员，并且您想了解每个用户、模型、聊天类型和扩展的使用详情，请尝试这个项目。这就是构建它的原因。
+如果您需要代理层的 Copilot 请求/响应日志，或官方报表未覆盖的自定义维度，例如本地代理认证用户、详细聊天动作类型、扩展调用以及原始请求/响应样本，可以使用此项目。
 
 ## 主要功能
 - 一个代理插件，用于捕获和记录您的IDE与GitHub Copilot API之间的HTTP请求和响应。

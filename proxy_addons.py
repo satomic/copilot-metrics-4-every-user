@@ -8,7 +8,7 @@
 
 import asyncio
 from mitmproxy import http, ctx
-from datetime import datetime
+from datetime import datetime, timezone
 import base64
 import json
 import os
@@ -86,6 +86,89 @@ class RequestType:
     extension = "extension"
     telemetry = "telemetry"
 
+
+def _has_nonempty_tools(content_request_dict):
+    if not isinstance(content_request_dict, dict):
+        return False
+
+    tools = content_request_dict.get("tools")
+    if isinstance(tools, list):
+        return len(tools) > 0
+    return bool(tools)
+
+
+def _extension_name_from_header(x_onbehalf_extension_id):
+    extension_id = x_onbehalf_extension_id.split("/", 1)[0]
+    extension_parts = extension_id.split(".")
+    return extension_parts[1] if len(extension_parts) > 1 else extension_parts[0]
+
+
+def classify_action_type(
+    request_type,
+    content_request_dict,
+    model,
+    openai_intent,
+    x_initiator,
+    x_interaction_type,
+    x_onbehalf_extension_id,
+):
+    model = model or "unknown"
+    openai_intent = openai_intent or "unknown"
+    content_request = str(content_request_dict.get('messages', [{}])[-2:]) if isinstance(content_request_dict, dict) else str(content_request_dict)
+    action_type = "completions"
+
+    if request_type == RequestType.chat:
+        has_tools_in_body = _has_nonempty_tools(content_request_dict)
+        if openai_intent == "conversation-agent" or x_initiator == "agent": # vscode / jetbrains (traditional)
+            action_type = "agent"
+        elif has_tools_in_body and openai_intent in ("conversation-panel", "conversation-other", "unknown"):
+            # Newer Copilot versions (2025+) may not use "conversation-agent" header for agent mode,
+            # but agent requests carry non-empty `tools` definitions for available tools.
+            action_type = "agent"
+        elif x_interaction_type == "git-commit": # jetbrains
+            action_type = "commit-message"
+        elif openai_intent == "conversation-edits" or x_interaction_type == "conversation-edit-panel": # vscode / jetbrains
+            action_type = "edits"
+        elif openai_intent == "conversation-panel":
+            if "Write an explanation for the" in content_request: # vscode / jetbrains
+                action_type = "explain"
+            elif "Fix the provided errors and problems" in content_request: # jetbrains
+                action_type = "fix"
+            elif "Write documentation for the selected code" in content_request: # jetbrains
+                action_type = "docs"
+            elif "Write a set of unit tests for the code above" in content_request: # jetbrains
+                action_type = "tests"
+            else:
+                action_type = "chat-panel"
+        elif openai_intent == "conversation-inline":
+            if "Please find a fix for my code so that the result is without any errors" in content_request: # vscode
+                action_type = "fix"
+            elif "Please, given sum, generate docstring only" in content_request: # vscode
+                action_type = "docs"
+            elif "Please, generate tests" in content_request or "Generate tests accordingly" in content_request: # vscode
+                action_type = "tests"
+            elif "I have the following code open in the editor" in content_request:
+                action_type = "code-review"
+            else:
+                action_type = "chat-inline"
+        elif "nes" in model: # "copilot-nes-v", "copilot-nes-xtab"
+            action_type = "nes"
+        elif openai_intent == "conversation-other":
+            if x_onbehalf_extension_id is not None:
+                action_type = _extension_name_from_header(x_onbehalf_extension_id)
+            elif "<currentChange>" in content_request:
+                action_type = "code-review"
+            elif "<user-commits>" in content_request: # vscode
+                action_type = "commit-message"
+            else:
+                action_type = "other"
+        else:
+            action_type = "other"
+    elif request_type == RequestType.extension:
+        action_type = "extension"
+
+    return action_type
+
 def get_request_type(flow: http.HTTPFlow):
     # ctx.log.warn(f"💗 flow.request.url: {flow.request.url}")
     # Determine type, discard if not one of the three types
@@ -114,31 +197,35 @@ def get_request_type(flow: http.HTTPFlow):
 class ContentHandler:
 
     @staticmethod
-    def is_convertible_to_dict(string):
+    def is_convertible_to_json(string):
         try:
-            eval(string)
+            json.loads(string)
             return True
-        except Exception as e:
-            # print(f"Error: {traceback.format_exc(e)}")
+        except (json.JSONDecodeError, TypeError, ValueError):
             return False
 
     @staticmethod
     def to_dicts(content):
         convert_status = True
-        content = content.replace('false', 'False').replace('true', 'True').replace('null', 'None')
 
         # for response content
         if content.startswith("data: "):
             contents = content.split("\n\n")
             ret = []
             for data in contents:
-                data = data.split("data: ")[-1].replace("\\", "").replace(" ", "")
-                data = eval(data) if ContentHandler.is_convertible_to_dict(data) else data
-                if data != "[DONE]":
-                    ret.append(data)
+                data = data.split("data: ")[-1].strip()
+                if data and data != "[DONE]":
+                    try:
+                        parsed = json.loads(data)
+                        ret.append(parsed)
+                    except (json.JSONDecodeError, ValueError):
+                        ret.append(data)
         else:
             # for request content
-            ret = eval(content) if ContentHandler.is_convertible_to_dict(content) else content
+            try:
+                ret = json.loads(content)
+            except (json.JSONDecodeError, ValueError):
+                ret = content
         if isinstance(ret, str):
             convert_status = False
             # ctx.log.error(f"❌ Content convert failed: {ret}")
@@ -152,13 +239,12 @@ class ContentHandler:
 class ProxyReqRspSaveToFile:
     
     def __init__(self):
-        self.loop = asyncio.get_event_loop()
         self.usernames = {}
         self.usernames_file_path = os.path.join(log_file_path, "proxy_auth_cache.json")
         self.usage_file_path = os.path.join(log_file_path, "usage")
         self.metrics_file_path = os.path.join(log_file_path, "metrics")
         self.telemetry_file_path = os.path.join(log_file_path, "telemetry")
-        self.current_date = datetime.utcnow().date()
+        self.current_date = datetime.now(timezone.utc).date()
         self.load_usernames()
         ctx.log.info("✅ Initialized ProxyReqRspSaveToJson plugin")
 
@@ -309,7 +395,7 @@ class ProxyReqRspSaveToFile:
         # Add milliseconds to the timestamp
         timeconsumed = round((flow.response.timestamp_end - flow.request.timestamp_start) * 1000, 2)
         timeconsumed_str = f"{timeconsumed}ms"  
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
 
         action_type = "unknown"
         editor_version = "unknown"
@@ -331,18 +417,9 @@ class ProxyReqRspSaveToFile:
                         if not has_text_in_contents_response:
                             ctx.log.warn(f'⚠️ Skipping invalid completion response, cuz there is no text in contents_response')
                             return
-                        # If the response_content_length field exists, it is not the normal completion behavior. This is based on experience gained from observing multiple jsons, not based on the design document.
-                        # content_length_response = headers_response.get('content-length')
-                        # if content_length_response is not None:
-                        #     ctx.log.info(f'⚠️ Skipping invalid completion response, cuz content_length_response is valid: {content_length_response}')
-                        #     return
-                    # Determine whether it is a normal chat
-                    else:
-                        # If the stop field exists, it is not the normal chat behavior. This is based on experience gained from observing multiple jsons, not based on the design document.
-                        content_stop_request = content_request_dict.get('stop')
-                        if content_stop_request is not None:
-                            ctx.log.warn(f'⚠️ Skipping invalid chat response, cuz content_stop_request is valid: {content_stop_request}')
-                            return
+                    # For chat-type requests (chat, agent, edits, etc.), do NOT filter based on `stop` field.
+                    # In newer Copilot versions (2025+), multi-turn conversations include `stop` in subsequent requests,
+                    # which is normal behavior and should be recorded.
 
                 # JetBrains Conditional judgment
                 elif 'jetbrains' in editor_version.lower():
@@ -351,15 +428,10 @@ class ProxyReqRspSaveToFile:
                         if not has_text_in_contents_response:
                             ctx.log.warn(f'⚠️ Skipping invalid completion response, cuz there is no text in contents_response')
                             return
-                    else:
-                        last_role_in_messages = content_request_dict.get('messages', [{}])[-1].get('role')
-                        if last_role_in_messages != 'user':
-                            ctx.log.warn(f'⚠️ Skipping invalid chat response, cuz last_role_in_messages is not type of `user`: {last_role_in_messages}')
-                            return
-                        tools_request = content_request_dict.get('tools')
-                        if tools_request is not None and x_initiator == 'agent':
-                            ctx.log.warn(f'⚠️ Skipping invalid chat response, cuz tools_request is valid: {tools_request}')
-                            return
+                    # For chat-type requests in JetBrains, do NOT filter based on last_role or tools field.
+                    # In agent mode, last message may be 'assistant' (tool call results) and tools field is always present.
+                    # These are normal agent behaviors and should be recorded.
+
                 else:
                     ctx.log.info(f"⚠️ Unknown editor: {editor_version}")
 
@@ -372,59 +444,20 @@ class ProxyReqRspSaveToFile:
             
 
             # what type of action is this? chat or completions? or NES, Agent, Edit? 
-            content_request = str(content_request_dict.get('messages', [{}])[-2:])
-            action_type = "completions"
-            if request_type == RequestType.chat:
-                if openai_intent == "conversation-agent" or x_initiator == "agent": # vscode / jetbrains
-                    action_type = "agent"
-                elif x_interaction_type == "git-commit": # jetbrains
-                    action_type = "commit-message"
-                elif openai_intent == "conversation-edits" or x_interaction_type == "conversation-edit-panel": # vscode / jetbrains
-                    action_type = "edits"
-                elif openai_intent == "conversation-panel":
-                    if "Write an explanation for the" in content_request: # vscode / jetbrains
-                        action_type = "explain"
-                    elif "Fix the provided errors and problems" in content_request: # jetbrains
-                        action_type = "fix"
-                    elif "Write documentation for the selected code" in content_request: # jetbrains
-                        action_type = "docs"
-                    elif "Write a set of unit tests for the code above" in content_request: # jetbrains
-                        action_type = "tests"
-                    else:
-                        action_type = "chat-panel"
-                elif openai_intent == "conversation-inline":
-                    if "Please find a fix for my code so that the result is without any errors" in content_request: # vscode
-                        action_type = "fix"
-                    elif "Please, given sum, generate docstring only" in content_request: # vscode
-                        action_type = "docs"
-                    elif "Please, generate tests" in content_request or "Generate tests accordingly" in content_request: # vscode
-                        action_type = "tests"
-                    elif "I have the following code open in the editor" in content_request:
-                        action_type = "code-review"
-                    else:
-                        action_type = "chat-inline"
-                elif "nes" in model: # "copilot-nes-v", "copilot-nes-xtab"
-                    action_type = "nes"
-                elif openai_intent == "conversation-other":
-                    if x_onbehalf_extension_id is not None:
-                        action_type = x_onbehalf_extension_id.split(".")[1].split("/")[0]
-                    elif "<currentChange>" in content_request:
-                        action_type = "code-review"
-                    elif "<user-commits>" in content_request: # vscode
-                        action_type = "commit-message"
-                    else:
-                        action_type = "other"
-                else:
-                    action_type = "other"
-            elif request_type == RequestType.extension:
-                action_type = "extension"
-            else:
-                action_type = action_type
+            action_type = classify_action_type(
+                request_type=request_type,
+                content_request_dict=content_request_dict,
+                model=model,
+                openai_intent=openai_intent,
+                x_initiator=x_initiator,
+                x_interaction_type=x_interaction_type,
+                x_onbehalf_extension_id=x_onbehalf_extension_id,
+            )
 
             try:
                 self.update_and_save_metrics(request_type, username, editor_version, language, action_type, model, extension)
             except Exception as e:
-                ctx.log.error(f"❌ Unable to update metrics: {traceback.format_exc(e)}")
+                ctx.log.error(f"❌ Unable to update metrics: {traceback.format_exc()}")
 
         else:
             if convert_status:
@@ -458,7 +491,7 @@ class ProxyReqRspSaveToFile:
                         try:
                             self.update_and_save_telemetry(username, editor_version, model, language, shown_num_lines, accepted_num_lines)
                         except Exception as e:
-                            ctx.log.error(f"❌ Unable to update telemetry: {traceback.format_exc(e)}")
+                            ctx.log.error(f"❌ Unable to update telemetry: {traceback.format_exc()}")
 
 
         if convert_status:
@@ -492,11 +525,11 @@ class ProxyReqRspSaveToFile:
                     log_file.write(json.dumps(log_entry, indent=4, ensure_ascii=False))
                 ctx.log.info(f"😄 Log saved {log_file_name}")
             except Exception as e:
-                ctx.log.error(f"❌ Unable to save log to file: {traceback.format_exc(e)}")
+                ctx.log.error(f"❌ Unable to save log to file: {traceback.format_exc()}")
                 return
 
     def update_and_save_metrics(self, request_type, username, editor_version, language, action_type, model, extension):
-        current_date = datetime.utcnow().date()
+        current_date = datetime.now(timezone.utc).date()
         if current_date != self.current_date:
             self.current_date = current_date
         self.metrics_file = os.path.join(self.metrics_file_path, f'copilot-usage_{self.current_date}.json')
@@ -511,7 +544,7 @@ class ProxyReqRspSaveToFile:
                 total_extension_count = existing_metrics.get("total_extension_count", 0)
                 aggregated_metrics = existing_metrics.get("usage", {})
             except Exception as e:
-                ctx.log.error(f"❌ Unable to load existing metrics: {traceback.format_exc(e)}")
+                ctx.log.error(f"❌ Unable to load existing metrics: {traceback.format_exc()}")
                 total_chat_turns = 0
                 total_completions_count = 0
                 total_extension_count = 0
@@ -635,7 +668,7 @@ class ProxyReqRspSaveToFile:
             ctx.log.error(f"❌ Unable to save metrics to file: {e}")
 
     def update_and_save_telemetry(self, username, editor_version, model, language, shown_num_lines, accepted_num_lines):
-        current_date = datetime.utcnow().date()
+        current_date = datetime.now(timezone.utc).date()
         if current_date != self.current_date:
             self.current_date = current_date
 
