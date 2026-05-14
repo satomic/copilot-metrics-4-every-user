@@ -77,6 +77,8 @@ ctx.log.info(init_info)
 class RequestTypeKeywords:
     completions = r"v1/engines/(.*)/completions" # copilot-codex / gpt-4o-copilot
     chat = r"chat/completions"
+    responses = r"/responses"          # Responses API (new endpoint for agent/Claude models)
+    messages = r"/v1/messages"          # Messages API (Anthropic-style endpoint)
     extension = r"agents/(.*)"
     telemetry = r"/telemetry"
 
@@ -119,7 +121,12 @@ def classify_action_type(
 
     if request_type == RequestType.chat:
         has_tools_in_body = _has_nonempty_tools(content_request_dict)
-        if openai_intent == "conversation-agent" or x_initiator == "agent": # vscode / jetbrains (traditional)
+        # --- FIX: Check NES model FIRST, before agent classification ---
+        # NES requests (copilot-nes-oct etc.) often carry x-initiator: agent
+        # but are NOT agent conversations — they are code edit predictions.
+        if "nes" in model:
+            action_type = "nes"
+        elif openai_intent == "conversation-agent" or x_initiator == "agent": # vscode / jetbrains (traditional)
             action_type = "agent"
         elif has_tools_in_body and openai_intent in ("conversation-panel", "conversation-other", "unknown"):
             # Newer Copilot versions (2025+) may not use "conversation-agent" header for agent mode,
@@ -151,8 +158,6 @@ def classify_action_type(
                 action_type = "code-review"
             else:
                 action_type = "chat-inline"
-        elif "nes" in model: # "copilot-nes-v", "copilot-nes-xtab"
-            action_type = "nes"
         elif openai_intent == "conversation-other":
             if x_onbehalf_extension_id is not None:
                 action_type = _extension_name_from_header(x_onbehalf_extension_id)
@@ -182,6 +187,13 @@ def get_request_type(flow: http.HTTPFlow):
             request_type = RequestType.extension
             para_in_url = match.group(1).replace("?", "").replace("chat", "")
         elif RequestTypeKeywords.chat in flow.request.url:
+            request_type = RequestType.chat
+            para_in_url = None
+        # --- NEW: Responses API & Messages API ---
+        elif re.search(RequestTypeKeywords.responses, flow.request.url):
+            request_type = RequestType.chat
+            para_in_url = None
+        elif re.search(RequestTypeKeywords.messages, flow.request.url):
             request_type = RequestType.chat
             para_in_url = None
         elif RequestTypeKeywords.telemetry in flow.request.url:
@@ -373,6 +385,13 @@ class ProxyReqRspSaveToFile:
     async def save_to_file(self, flow: http.HTTPFlow):
         # if "telemetry" not in flow.request.url:
         #     print("completions=================================: ", flow.request.url)
+
+        # --- FIX: Skip non-POST requests (GET/OPTIONS/HEAD) ---
+        # Extension polling (GET /agents/sessions?...) and OPTIONS preflight
+        # requests contain no LLM content and create noise in usage-logs.
+        if flow.request.method.upper() != "POST":
+            ctx.log.info(f"⏭️ Skipping non-POST request: {flow.request.method} {flow.request.url[:120]}")
+            return
 
         # Determine type, discard if not one of the two types
         request_type, para_in_url = get_request_type(flow)
